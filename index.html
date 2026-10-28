@@ -1,0 +1,1618 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Vendor Cost Comparison</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx-populate/1.21.0/xlsx-populate.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+  :root{
+    --ink:#111c2c; --ink2:#1b2a3d; --muted:#5b6b81; --line:#d8dee6; --bg:#eef1f5;
+    --l1-bg:#dff3e3; --l1-text:#1e7a46; --l1-border:#7fc79a;
+    --l2-bg:#fdf3d0; --l2-text:#8a6d1b; --l2-border:#e4c654;
+    --l3-bg:#fbe7c6; --l3-text:#8a4b12; --l3-border:#e0a550;
+    --l4-bg:#dbe9fb; --l4-text:#1e4d8a; --l4-border:#7fa8e0;
+    --l5-bg:#ece3f7; --l5-text:#5b3a8a; --l5-border:#b79ce0;
+    --l6-bg:#d9f2ef; --l6-text:#146b60; --l6-border:#7fcfc2;
+    --l7-bg:#fbe3ea; --l7-text:#8a2c53; --l7-border:#e0a0bb;
+    --l8-bg:#e6e9ef; --l8-text:#3c4a5e; --l8-border:#a9b4c4;
+    --l9-bg:#f0e3d5; --l9-text:#7a4a1e; --l9-border:#cba36e;
+    --l10-bg:#e1e4fb; --l10-text:#33368a; --l10-border:#a3a8e6;
+    --nr-bg:#fde2e1; --nr-text:#a33; --nr-border:#f0a8a5;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Inter,system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--ink);}
+  h1,h2,h3{font-family:Georgia,'Fraunces',serif;margin:0}
+  input,select{font-family:inherit}
+  .container{max-width:1300px;margin:0 auto;padding:0 20px}
+  .topbar{position:sticky;top:0;z-index:10;background:rgba(238,241,245,.95);backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
+  .topbar-inner{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:14px 0}
+  .btn{border:1px solid var(--line);background:#fff;color:var(--ink);padding:8px 14px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;transition:.15s}
+  .btn:hover{background:#f4f6f9}
+  .btn.primary{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .btn.primary:hover{background:var(--ink2)}
+  .btn.danger{color:#b3261e;border-color:#f3c2bf}
+  .btn.danger:hover{background:#fdecea}
+  .btn:disabled{opacity:.4;cursor:not-allowed}
+  .card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:20px;box-shadow:0 1px 2px rgba(20,30,50,.04)}
+  .grid{display:grid;gap:16px}
+  .grid-3{grid-template-columns:repeat(3,1fr)}
+  .grid-2{grid-template-columns:repeat(2,1fr)}
+  @media(max-width:820px){.grid-3,.grid-2{grid-template-columns:1fr}}
+  label.field{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.03em}
+  label.field input,label.field select{font-size:14px;color:var(--ink);border:1px solid #c7cfda;border-radius:6px;padding:8px 10px;outline:none;font-weight:400}
+  label.field input:focus,label.field select:focus{border-color:var(--ink);box-shadow:0 0 0 3px rgba(17,28,44,.08)}
+  table{border-collapse:collapse;width:100%;font-size:13px}
+  th,td{border:1px solid var(--line);padding:6px 8px}
+  th{background:#f6f7f9;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.03em;color:var(--muted)}
+  td input{width:100%;border:1px solid #c7cfda;border-radius:5px;padding:5px 7px;font-size:13px;outline:none}
+  td input:focus{border-color:var(--ink)}
+  .num{font-variant-numeric:tabular-nums;font-family:'IBM Plex Mono',monospace}
+  .rank-badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.03em}
+  .rank-L1{background:var(--l1-bg);color:var(--l1-text);border:1px solid var(--l1-border)}
+  .rank-L2{background:var(--l2-bg);color:var(--l2-text);border:1px solid var(--l2-border)}
+  .rank-L3{background:var(--l3-bg);color:var(--l3-text);border:1px solid var(--l3-border)}
+  .rank-L4{background:var(--l4-bg);color:var(--l4-text);border:1px solid var(--l4-border)}
+  .rank-L5{background:var(--l5-bg);color:var(--l5-text);border:1px solid var(--l5-border)}
+  .rank-L6{background:var(--l6-bg);color:var(--l6-text);border:1px solid var(--l6-border)}
+  .rank-L7{background:var(--l7-bg);color:var(--l7-text);border:1px solid var(--l7-border)}
+  .rank-L8{background:var(--l8-bg);color:var(--l8-text);border:1px solid var(--l8-border)}
+  .rank-L9{background:var(--l9-bg);color:var(--l9-text);border:1px solid var(--l9-border)}
+  .rank-L10{background:var(--l10-bg);color:var(--l10-text);border:1px solid var(--l10-border)}
+  .rank-NR{background:var(--nr-bg);color:var(--nr-text);border:1px solid var(--nr-border)}
+  .vendor-card{border-radius:10px;border:2px solid var(--line);padding:14px;background:#fff;position:relative}
+  .vendor-card.L1{border-color:var(--l1-border);background:linear-gradient(180deg,#fff,var(--l1-bg) 400%)}
+  .vendor-card.L2{border-color:var(--l2-border)}
+  .vendor-card.L3{border-color:var(--l3-border)}
+  .vendor-card.L4{border-color:var(--l4-border)}
+  .vendor-card.L5{border-color:var(--l5-border)}
+  .vendor-card.L6{border-color:var(--l6-border)}
+  .vendor-card.L7{border-color:var(--l7-border)}
+  .vendor-card.L8{border-color:var(--l8-border)}
+  .vendor-card.L9{border-color:var(--l9-border)}
+  .vendor-card.L10{border-color:var(--l10-border)}
+  .selected-banner{border-radius:10px;border:2px solid var(--l1-border);background:var(--l1-bg);padding:16px 18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+  .pill{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+  .small{font-size:12px;color:var(--muted)}
+  .stat{background:#fff;border:1px solid var(--line);border-radius:10px;padding:16px}
+  .stat .val{font-size:26px;font-weight:700;font-family:'IBM Plex Mono',monospace}
+  a.link-btn{text-decoration:none}
+  .warn-box{background:#fff7e0;border:1px solid #ecd48f;border-radius:8px;padding:10px 14px;font-size:13px;color:#7a5a06}
+  .err-box{background:#fdecea;border:1px solid #f3c2bf;border-radius:8px;padding:10px 14px;font-size:13px;color:#a33}
+  .badge-cbre{font-size:10px;font-weight:700;background:#fdf3d0;color:#8a6d1b;border-radius:999px;padding:2px 8px}
+
+  /* ===== Professional theme ===== */
+  :root{--ink:#0f2742;--ink2:#17385c;--muted:#5a6a80;--line:#d5dde8;--bg:#f1f4f9;--accent:#0b7a8f}
+  body{font-family:'IBM Plex Sans',Inter,system-ui,sans-serif;background:var(--bg)}
+  h1,h2,h3{font-family:'IBM Plex Sans',Inter,system-ui,sans-serif;font-weight:700;letter-spacing:-.01em}
+  .num{font-family:'IBM Plex Mono',ui-monospace,monospace}
+  .brand{background:linear-gradient(100deg,#0a1d33,#12395f);color:#fff;border-bottom:3px solid var(--accent)}
+  .brand-in{display:flex;align-items:center;gap:14px;padding:14px 20px}
+  .logo{width:38px;height:38px;border-radius:8px;background:var(--accent);display:grid;place-items:center;font-weight:700;letter-spacing:.02em}
+  .brand-t{font-size:17px;font-weight:700}.brand-s{font-size:12px;color:#a9bfd6}
+  .topbar{background:rgba(255,255,255,.96)}
+  .card{border-radius:10px;box-shadow:0 1px 3px rgba(15,39,66,.07)}
+  .btn{border-radius:6px}.btn.primary{background:var(--ink);border-color:var(--ink)}
+  .btn.accent{background:var(--accent);border-color:var(--accent);color:#fff}.btn.accent:hover{background:#09687a}
+  th{background:#e9eff6;color:#3b4d66}
+  tbody tr:hover td{background:#f8fafd}
+  .stat{border-top:4px solid var(--ink);border-radius:8px}
+  .stat.s-pending{border-top-color:#e0a830}.stat.s-progress{border-top-color:#2f6fd0}.stat.s-done{border-top-color:#2c9a5f}
+  .status{display:inline-flex;align-items:center;gap:6px;padding:3px 11px;border-radius:999px;font-size:12px;font-weight:700;border:1px solid;white-space:nowrap}
+  .status i{width:8px;height:8px;border-radius:50%;background:currentColor;display:inline-block}
+  .st-pending{background:#fff4dc;color:#935d00;border-color:#efcf86}
+  .st-progress{background:#e3eeff;color:#1b52a8;border-color:#9ec1f2}
+  .st-done{background:#dcf3e4;color:#17713f;border-color:#82c9a0}
+  select.status-select{font:inherit;font-size:12px;font-weight:700;padding:4px 8px;border-radius:999px;border:1px solid;cursor:pointer}
+  tr.row-pending td:first-child{box-shadow:inset 4px 0 0 #e0a830}
+  tr.row-progress td:first-child{box-shadow:inset 4px 0 0 #2f6fd0}
+  tr.row-done td:first-child{box-shadow:inset 4px 0 0 #2c9a5f}
+  .chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 13px;font-size:12px;font-weight:600;cursor:pointer;color:var(--muted)}
+  .chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .progress{display:flex;height:10px;border-radius:999px;overflow:hidden;background:#e4eaf2}
+  .doc-btn{padding:3px 9px;font-size:12px}
+  .search{border:1px solid #c7cfda;border-radius:6px;padding:7px 10px;font-size:13px;min-width:220px;font-family:inherit}
+  .stepper{display:flex;align-items:center;gap:8px}.stepper .n{min-width:34px;text-align:center;font-weight:700;font-size:16px}
+  .modal-bg{position:fixed;inset:0;background:rgba(10,29,51,.5);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px}
+  @media print{body *{visibility:hidden}#print-area,#print-area *{visibility:visible}#print-area{position:absolute;left:0;top:0;width:100%;box-shadow:none;border:0}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useMemo } = React;
+
+/* ================= CLOUD SYNC SETTINGS - edit these two lines ================= */
+const CLOUD={
+  clientId:'PASTE_YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com', // Google Cloud > Credentials > OAuth client ID (Web)
+  allowedEmail:'yourname@gmail.com'                                  // the ONE Gmail account allowed to use this app
+};
+const CLOUD_ON=()=>!/^PASTE/.test(CLOUD.clientId)&&!/^yourname@/.test(CLOUD.allowedEmail);
+/* Data is stored in that account's private Google Drive app folder (hidden, only this app can read it).
+   Left unconfigured, the app runs in local-only mode exactly as before. */
+const Cloud={token:null,exp:0,email:null,fileId:null};
+function waitGoogle(){ return new Promise((res,rej)=>{ let n=0; const t=setInterval(()=>{ if(window.google&&google.accounts&&google.accounts.oauth2){clearInterval(t);res();} else if(++n>50){clearInterval(t);rej(new Error('Google sign-in could not load. Check your internet connection.'));} },100); }); }
+async function cloudSignIn(prompt){
+  await waitGoogle();
+  return new Promise((res,rej)=>{
+    const c=google.accounts.oauth2.initTokenClient({client_id:CLOUD.clientId,scope:'openid email https://www.googleapis.com/auth/drive.appdata',hint:CLOUD.allowedEmail,
+      callback:async r=>{
+        if(r.error) return rej(new Error(r.error_description||r.error));
+        try{
+          const u=await (await fetch('https://www.googleapis.com/oauth2/v3/userinfo',{headers:{Authorization:'Bearer '+r.access_token}})).json();
+          if((u.email||'').toLowerCase()!==CLOUD.allowedEmail.toLowerCase()){ google.accounts.oauth2.revoke(r.access_token,()=>{}); return rej(new Error('This app is locked to '+CLOUD.allowedEmail+'. You signed in as '+(u.email||'another account')+'.')); }
+          Cloud.token=r.access_token; Cloud.exp=Date.now()+(r.expires_in-60)*1000; Cloud.email=u.email; res(u.email);
+        }catch(e){ rej(e); }
+      },
+      error_callback:e=>rej(new Error(e.type==='popup_closed'?'Sign-in window was closed.':(e.type||'Sign-in failed')))});
+    c.requestAccessToken({prompt:prompt});
+  });
+}
+async function cloudEnsureToken(){ if(!(Cloud.token&&Date.now()<Cloud.exp)) await cloudSignIn(''); }
+async function drive(path,opts){ const r=await fetch('https://www.googleapis.com'+path,{...opts,headers:{Authorization:'Bearer '+Cloud.token,...((opts&&opts.headers)||{})}}); if(!r.ok) throw new Error('Google Drive error '+r.status); return r; }
+async function cloudFindFile(){ if(Cloud.fileId) return Cloud.fileId; const j=await (await drive('/drive/v3/files?spaces=appDataFolder&fields=files(id)&q='+encodeURIComponent("name='vcc-data.json'"))).json(); Cloud.fileId=j.files&&j.files[0]?j.files[0].id:null; return Cloud.fileId; }
+async function cloudPull(){ const id=await cloudFindFile(); return id?(await drive('/drive/v3/files/'+id+'?alt=media')).json():null; }
+async function driveUpload(name,payload,id){
+  const B='vccboundary', meta=id?{}:{name:name,parents:['appDataFolder']};
+  const body='--'+B+'\r\nContent-Type: application/json\r\n\r\n'+JSON.stringify(meta)+'\r\n--'+B+'\r\nContent-Type: application/json\r\n\r\n'+JSON.stringify(payload)+'\r\n--'+B+'--';
+  const r=await drive('/upload/drive/v3/files'+(id?'/'+id:'')+'?uploadType=multipart&fields=id',{method:id?'PATCH':'POST',headers:{'Content-Type':'multipart/related; boundary='+B},body});
+  return (await r.json()).id;
+}
+async function cloudListBackups(){ const j=await (await drive('/drive/v3/files?spaces=appDataFolder&orderBy=name%20desc&pageSize=100&fields=files(id,name)&q='+encodeURIComponent("name contains 'vcc-backup-'"))).json(); return j.files||[]; }
+async function cloudPushNow(){
+  const comparisons=loadComparisons(); if(!comparisons.length && !Cloud.fileId && !(await cloudFindFile())) return;
+  const payload={app:'vendor-cost-comparison',ts:safeNum(localStorage.getItem('vcc_local_ts'))||Date.now(),lastRef:loadLastRef(),comparisons};
+  Cloud.fileId=await driveUpload('vcc-data.json',payload,await cloudFindFile());
+  const day=new Date().toISOString().slice(0,10); // one dated backup file per day, newest 14 kept
+  if(localStorage.getItem('vcc_cloud_bk_day')!==day){
+    await driveUpload('vcc-backup-'+day+'.json',payload,null); localStorage.setItem('vcc_cloud_bk_day',day);
+    const all=await cloudListBackups(); for(const f of all.slice(14)) await drive('/drive/v3/files/'+f.id,{method:'DELETE'});
+  }
+}
+
+/* ---------------- calculation engine ---------------- */
+const MAX_LINES = Infinity; // no cap on BOQ lines
+const DEFAULT_GST = 18;
+const CBRE_FEE_PCT = 3; // default fee applied automatically when a vendor name contains "CBRE" (user-editable per vendor)
+
+function isCBRE(name){ return /cbre/i.test((name||'').trim()); }
+function round2(n){ return Math.round((n+Number.EPSILON)*100)/100; }
+function rateKey(vId,lId){ return vId+'::'+lId; }
+function safeNum(v){ const n = typeof v==='number'?v:parseFloat(v); return Number.isFinite(n)?n:0; }
+function uid(p){ return p+'_'+Math.random().toString(36).slice(2,9); }
+
+function formatINR(v){
+  return '₹' + new Intl.NumberFormat('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}).format(Number.isFinite(v)?v:0);
+}
+// jsPDF's standard fonts (Helvetica) do NOT include the ₹ glyph (U+20B9) — that mismatch
+// is what was rendering as a broken box / cross mark in the old PDF. The PDF always uses
+// "Rs." instead so every character is guaranteed to exist in the font.
+function formatINRPdf(v){
+  return 'Rs. ' + new Intl.NumberFormat('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}).format(Number.isFinite(v)?v:0);
+}
+
+function computeVendorResult(vendor, lines, rates){
+  const cbre = isCBRE(vendor.name);
+  const lineResults = [];
+  const missing = [];
+  let basic=0, lineGstTotal=0, gstWeighted=0;
+  lines.forEach(line=>{
+    const qty = line.qty;
+    const rate = rates[rateKey(vendor.id,line.id)];
+    const hasQty = qty!==null && qty!==undefined && qty>0;
+    const hasRate = rate!==null && rate!==undefined && !Number.isNaN(rate);
+    let amount=null, gst=0;
+    if(hasQty && hasRate){
+      amount = round2(qty*rate);
+      gst = round2(amount*(line.gstPercent/100));
+      basic += amount; lineGstTotal += gst; gstWeighted += amount*line.gstPercent;
+    } else if(hasQty && !hasRate){
+      missing.push(line.sno);
+    }
+    lineResults.push({lineId:line.id,sno:line.sno,description:line.description,qty,rate:hasRate?rate:null,amount,gstPercent:line.gstPercent,lineGst:gst});
+  });
+  basic = round2(basic); lineGstTotal = round2(lineGstTotal);
+  // Management fee is fully user-editable for every vendor (CBRE or not). The UI layer
+  // is responsible for defaulting it (CBRE->3%, non-CBRE->0%) only until the user
+  // manually overrides it; here we just trust whatever numeric value is stored.
+  const feePct = (typeof vendor.feePercent==='number' && !Number.isNaN(vendor.feePercent) && vendor.feePercent>=0) ? vendor.feePercent : (cbre?CBRE_FEE_PCT:0);
+  const fee = round2(basic*(feePct/100));
+  const wAvgGst = basic>0 ? gstWeighted/basic : 0;
+  const feeGst = round2(fee*(wAvgGst/100));
+  const gstAmount = round2(lineGstTotal+feeGst);
+  const taxable = round2(basic+fee);
+  const grand = round2(taxable+gstAmount);
+  return {vendor,isCBRE:cbre,lines:lineResults,basicSubtotal:basic,managementFeePercent:feePct,managementFee:fee,
+    weightedAvgGstPercent:round2(wAvgGst),gstAmount,taxableAmount:taxable,grandTotal:grand,isComplete:missing.length===0,missingLineNumbers:missing};
+}
+
+function rankVendors(results){
+  const rankable = results.filter(r=>r.isComplete);
+  const notRankable = results.filter(r=>!r.isComplete);
+  const sorted = [...rankable].sort((a,b)=>a.grandTotal-b.grandTotal);
+  const ranked=[];
+  sorted.forEach((res,i)=>{
+    let rank, tie=false;
+    if(i>0 && sorted[i-1].grandTotal===res.grandTotal){
+      rank = ranked[i-1].rank; tie=true; ranked[i-1]={...ranked[i-1],isTie:true};
+    } else { rank = 'L'+(i+1); } // dynamic - not capped at L3, works for any vendor count
+    ranked.push({...res, rank, isTie:tie});
+  });
+  const unranked = notRankable.map(r=>({...r,rank:'NR',isTie:false}));
+  return [...ranked, ...unranked];
+}
+function rankOrderValue(rank){
+  if(rank==='NR') return Number.MAX_SAFE_INTEGER;
+  const n = parseInt(String(rank).replace('L',''),10);
+  return Number.isFinite(n) ? n : Number.MAX_SAFE_INTEGER-1;
+}
+// Maps any rank to one of the 10 defined colour classes (cycling for L11+). Only the
+// colour cycles - the badge/label text always shows the vendor's true rank (e.g. "L11").
+function rankColorClass(rank){
+  if(rank==='NR') return 'NR';
+  const n = parseInt(String(rank).replace('L',''),10);
+  if(!Number.isFinite(n) || n<1) return 'NR';
+  return 'L'+(((n-1)%10)+1);
+}
+function exportOrder(results){
+  const ranked = rankVendors(results);
+  return [...ranked].sort((a,b)=>rankOrderValue(a.rank)-rankOrderValue(b.rank));
+}
+
+/* ---------------- persistence ---------------- */
+const LS_COMPARISONS = 'vcc_comparisons_v1';
+const LS_LASTREF = 'vcc_last_ref_v1';
+
+function loadComparisons(){ try{ return JSON.parse(localStorage.getItem(LS_COMPARISONS)||'[]'); }catch(e){ return []; } }
+const LS_BACKUPS='vcc_backups_v1';
+function loadBackups(){ try{ return JSON.parse(localStorage.getItem(LS_BACKUPS)||'[]'); }catch(e){ return []; } }
+function pushBackup(list,reason){
+  let b=loadBackups(); b.unshift({ts:Date.now(),reason:reason||'Save',count:list.length,data:list}); b=b.slice(0,12);
+  while(b.length){ try{ localStorage.setItem(LS_BACKUPS,JSON.stringify(b)); return; }catch(e){ b.pop(); } }
+}
+function saveComparisons(list,reason,noCloud){
+  try{ localStorage.setItem(LS_COMPARISONS, JSON.stringify(list)); }
+  catch(e){ alert('Browser storage is full - the save did not complete. Download a full backup from the dashboard and clear older comparisons.'); return false; }
+  if(!noCloud){ localStorage.setItem('vcc_local_ts',String(Date.now())); if(window.__cloudPush) window.__cloudPush(); }
+  pushBackup(list,reason); return true; // every save also writes a local snapshot and (when signed in) a Google Drive copy
+}
+function downloadBlob(blob,name){ const u=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=u; a.download=name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(u),4000); }
+async function buildBackup(comparisons,lastRef){ return {app:'vendor-cost-comparison',version:2,ts:Date.now(),lastRef,comparisons}; }
+const STATUSES=['Pending','In Progress','Completed'];
+const STATUS_CLS={'Pending':'st-pending','In Progress':'st-progress','Completed':'st-done'};
+const ROW_CLS={'Pending':'row-pending','In Progress':'row-progress','Completed':'row-done'};
+function StatusChip({s}){ return <span className={'status '+(STATUS_CLS[s]||'st-pending')}><i/>{s||'Pending'}</span>; }
+function BrandBar({cloud}){ return <div className="brand"><div className="container brand-in"><div className="logo">VC</div><div><div className="brand-t">Vendor Cost Comparison</div><div className="brand-s">Procurement &amp; bid evaluation console</div></div>
+  {cloud && <div style={{marginLeft:'auto',display:'flex',gap:10,alignItems:'center',flexWrap:'wrap',fontSize:12}}>
+    {cloud.on ? <React.Fragment>
+      <span style={{color:cloud.state==='error'?'#ffb4ab':cloud.state==='syncing'?'#ffe08a':'#9be7bb'}}>&#9679; {cloud.msg}</span>
+      {cloud.email && <span style={{color:'#a9bfd6'}}>{cloud.email}</span>}
+      <button type="button" className="btn" onClick={cloud.sync}>Sync now</button><button type="button" className="btn" onClick={cloud.signOut}>Sign out</button>
+    </React.Fragment> : <span style={{color:'#a9bfd6'}}>Local only - cloud sync not configured</span>}
+  </div>}
+</div></div>; }
+function LoginScreen({onSignIn,err,busy}){
+  return <div className="container" style={{paddingTop:60,maxWidth:520}}><div className="card" style={{textAlign:'center',padding:32}}>
+    <h2 style={{fontSize:20}}>Sign in to continue</h2>
+    <p className="small" style={{margin:'10px 0 18px',lineHeight:1.6}}>Access is limited to <b>{CLOUD.allowedEmail}</b>. Your comparisons are saved to that account&rsquo;s private Google Drive and load automatically on any device after you sign in.</p>
+    <Btn variant="primary" onClick={()=>onSignIn('select_account')} disabled={busy}>{busy?'Signing in\u2026':'Sign in with Google'}</Btn>
+    {err && <p className="err-box" style={{marginTop:16,textAlign:'left'}}>{err}</p>}
+  </div></div>;
+}
+function loadLastRef(){ return safeNum(localStorage.getItem(LS_LASTREF) || '0'); }
+function saveLastRef(n){ localStorage.setItem(LS_LASTREF, String(n)); }
+function formatRef(n){ return 'CC-' + String(n).padStart(4,'0'); }
+
+/* ---------------- sample / blank data ---------------- */
+function blankState(){
+  const vendors = ['vendor1','vendor2','vendor3'].map(id=>({id,name:'',type:'',code:'',deliveryTimeline:'',paymentTerms:'',quotationValidity:'',warranty:'',feePercent:0,feeManual:false}));
+  const l1 = {id:uid('boq'),sno:1,description:'',uom:'',qty:null,gstPercent:DEFAULT_GST};
+  return {refNo:null,isSaved:false,project:{activityName:'',comparisonDate:new Date().toISOString().slice(0,10),preparedBy:'',department:'',status:'Pending'},boqLines:[l1],vendors,rates:{},docs:[]};
+}
+function sampleState(){
+  const l1=uid('boq'), l2=uid('boq'), l3=uid('boq'), l4=uid('boq'), l5=uid('boq');
+  const boqLines=[
+    {id:l1,sno:1,description:'Supply and installation of LED light',uom:'Nos',qty:10,gstPercent:18},
+    {id:l2,sno:2,description:'Cable laying work',uom:'Mtr',qty:50,gstPercent:18},
+    {id:l3,sno:3,description:'Installation work',uom:'Job',qty:1,gstPercent:18},
+    {id:l4,sno:4,description:'MCB Distribution Board',uom:'Nos',qty:2,gstPercent:18},
+    {id:l5,sno:5,description:'Earthing work',uom:'Job',qty:1,gstPercent:18},
+  ];
+  const vendors=[
+    {id:'vendor1',name:'ABC Electricals',type:'External Vendor',code:'VEN-001',deliveryTimeline:'2 weeks',paymentTerms:'30 days credit',quotationValidity:'30 days',warranty:'12 months',feePercent:0,feeManual:false},
+    {id:'vendor2',name:'CBRE',type:'CBRE',code:'VEN-002',deliveryTimeline:'10 days',paymentTerms:'45 days credit',quotationValidity:'45 days',warranty:'24 months',feePercent:3,feeManual:false},
+    {id:'vendor3',name:'XYZ Engineering',type:'External Vendor',code:'VEN-003',deliveryTimeline:'3 weeks',paymentTerms:'15 days credit',quotationValidity:'30 days',warranty:'12 months',feePercent:0,feeManual:false},
+  ];
+  const rates={};
+  rates[rateKey('vendor1',l1)]=500; rates[rateKey('vendor1',l2)]=100; rates[rateKey('vendor1',l3)]=5000; rates[rateKey('vendor1',l4)]=8000; rates[rateKey('vendor1',l5)]=3000;
+  rates[rateKey('vendor2',l1)]=550; rates[rateKey('vendor2',l2)]=95;  rates[rateKey('vendor2',l3)]=4500; rates[rateKey('vendor2',l4)]=7600; rates[rateKey('vendor2',l5)]=2800;
+  rates[rateKey('vendor3',l1)]=480; rates[rateKey('vendor3',l2)]=110; rates[rateKey('vendor3',l3)]=5200; rates[rateKey('vendor3',l4)]=8300; rates[rateKey('vendor3',l5)]=3200;
+  return {refNo:null,isSaved:false,project:{activityName:'Electrical Maintenance Work',comparisonDate:new Date().toISOString().slice(0,10),preparedBy:'',department:'',status:'Pending'},boqLines,vendors,rates,docs:[]};
+}
+
+/* ---------------- small UI atoms ---------------- */
+function Field({label,value,onChange,type='text',placeholder}){
+  return <label className="field">{label}
+    <input type={type} value={value} placeholder={placeholder} onChange={e=>onChange(e.target.value)} />
+  </label>;
+}
+function Btn({children,onClick,variant,disabled,title}){
+  return <button title={title} className={"btn"+(variant?(' '+variant):'')} onClick={onClick} disabled={disabled}>{children}</button>;
+}
+
+// Replaces window.confirm(), which is commonly disabled/silently no-op inside sandboxed
+// preview iframes (e.g. an inline artifact viewer) - a blocked confirm() would make
+// `if(!confirm(...)) return;` bail out on every call, looking exactly like the action
+// being "stuck". This is a real in-page modal instead, so it always actually works.
+function ConfirmModal({message, confirmLabel, cancelLabel, danger, onYes, onNo}){
+  return <div style={{position:'fixed',inset:0,background:'rgba(17,28,44,0.45)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000,padding:20}} onClick={onNo}>
+    <div className="card" style={{maxWidth:440,width:'100%',boxShadow:'0 12px 32px rgba(17,28,44,.25)'}} onClick={e=>e.stopPropagation()}>
+      <p style={{fontSize:14,color:'#111c2c',lineHeight:1.5,whiteSpace:'pre-wrap',margin:0}}>{message}</p>
+      <div style={{display:'flex',justifyContent:'flex-end',gap:8,marginTop:18}}>
+        <Btn onClick={onNo}>{cancelLabel||'Cancel'}</Btn>
+        <Btn variant={danger?'danger':'primary'} onClick={onYes}>{confirmLabel||'Continue'}</Btn>
+      </div>
+    </div>
+  </div>;
+}
+function useConfirmDialog(){
+  const [state, setState] = useState(null); // {message, resolve}
+  const ask = (message) => new Promise(resolve=>{ setState({message, resolve}); });
+  const respond = (result) => { setState(s=>{ if(s) s.resolve(result); return null; }); };
+  const dialogNode = state ? <ConfirmModal message={state.message} onYes={()=>respond(true)} onNo={()=>respond(false)}/> : null;
+  return [ask, dialogNode];
+}
+
+/* ---------------- Dashboard ---------------- */
+function Dashboard({comparisons,lastRef,onNew,onOpen,onDuplicate,onDelete,onStatus,onRestore,cloudOn}){
+  const [filter,setFilter]=useState('All'); const [q,setQ]=useState(''); const [showBk,setShowBk]=useState(false); const [busy,setBusy]=useState(false); const [cbk,setCbk]=useState(null);
+  const rows=useMemo(()=>[...comparisons].sort((a,b)=>b.refNo-a.refNo).map(c=>{
+    const ordered=exportOrder(c.vendors.map(v=>computeVendorResult(v,c.boqLines,c.rates)));
+    const l1=ordered[0], ok=l1&&l1.rank==='L1';
+    return {...c,status:(c.project&&c.project.status)||'Pending',l1Name:ok?l1.vendor.name:'\u2014',grandTotal:ok?l1.grandTotal:null,nLines:c.boqLines.length,nVendors:c.vendors.length};
+  }),[comparisons]);
+  const count=st=>rows.filter(r=>r.status===st).length;
+  const shown=rows.filter(r=>(filter==='All'||r.status===filter)&&(!q.trim()||(r.project.activityName+' '+formatRef(r.refNo)+' '+r.l1Name).toLowerCase().includes(q.trim().toLowerCase())));
+  const pct=n=>rows.length?(n/rows.length*100):0;
+  const backups=useMemo(()=>loadBackups(),[comparisons,showBk]);
+  const doDownload=async()=>{ setBusy(true); try{ const bk=await buildBackup(comparisons,lastRef); downloadBlob(new Blob([JSON.stringify(bk)],{type:'application/json'}),'VCC_Backup_'+new Date().toISOString().slice(0,10)+'.json'); }catch(e){ alert('Backup failed: '+e.message); } setBusy(false); };
+  const doFile=async(f)=>{ try{ const bk=JSON.parse(await f.text()); if(!bk||!Array.isArray(bk.comparisons)) throw new Error('not a Vendor Cost Comparison backup'); onRestore(bk.comparisons,bk.lastRef,bk.files,'the backup file '+f.name); }catch(e){ alert('Could not read the backup: '+e.message); } };
+  return <div className="container" style={{paddingTop:24,paddingBottom:48}}>
+    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:12,marginBottom:18}}>
+      <div><h1 style={{fontSize:24}}>Activity dashboard</h1><p className="small" style={{marginTop:4}}>Track every comparison from pending to completed.</p></div>
+      <div style={{display:'flex',gap:8,flexWrap:'wrap'}}><Btn onClick={()=>setShowBk(!showBk)}>Backup &amp; restore</Btn><Btn variant="accent" onClick={onNew}>+ New comparison</Btn></div>
+    </div>
+    <div className="grid" style={{gridTemplateColumns:'repeat(auto-fit,minmax(170px,1fr))',marginBottom:14}}>
+      <div className="stat"><div className="pill">Total activities</div><div className="val">{rows.length}</div></div>
+      <div className="stat s-pending"><div className="pill">Pending</div><div className="val">{count('Pending')}</div></div>
+      <div className="stat s-progress"><div className="pill">In progress</div><div className="val">{count('In Progress')}</div></div>
+      <div className="stat s-done"><div className="pill">Completed</div><div className="val">{count('Completed')}</div></div>
+      <div className="stat"><div className="pill">Next ref. no.</div><div className="val" style={{fontSize:20}}>{formatRef(lastRef+1)}</div></div>
+    </div>
+    {rows.length>0 && <div className="progress" style={{marginBottom:18}} title="Completed / In progress / Pending">
+      <div style={{width:pct(count('Completed'))+'%',background:'#2c9a5f'}}/><div style={{width:pct(count('In Progress'))+'%',background:'#2f6fd0'}}/><div style={{width:pct(count('Pending'))+'%',background:'#e0a830'}}/></div>}
+
+    {showBk && <div className="card" style={{marginBottom:18}}>
+      <h2 style={{fontSize:16}}>Backup &amp; restore</h2>
+      <p className="small" style={{margin:'4px 0 10px'}}>Every save also keeps an automatic snapshot (last 12). Download a backup file regularly and keep a copy outside this browser.</p>
+      <div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:12}}>
+        <Btn variant="primary" onClick={doDownload} disabled={busy}>{busy?'Preparing\u2026':'Download full backup (.json)'}</Btn>
+        <label className="btn" style={{cursor:'pointer',margin:0}}>Restore from file<input type="file" accept=".json" style={{display:'none'}} onChange={e=>{ const f=e.target.files[0]; e.target.value=''; if(f) doFile(f); }}/></label>
+      </div>
+      {backups.length===0?<p className="small">No automatic snapshots yet - they appear after your first save.</p>:
+      <table><thead><tr><th>Snapshot time</th><th>Trigger</th><th>Comparisons</th><th>Action</th></tr></thead><tbody>
+        {backups.map(bk=><tr key={bk.ts}><td>{new Date(bk.ts).toLocaleString()}</td><td>{bk.reason}</td><td className="num">{bk.count}</td><td><Btn onClick={()=>onRestore(bk.data,0,null,'the snapshot from '+new Date(bk.ts).toLocaleString())}>Restore</Btn></td></tr>)}
+      </tbody></table>}
+      {cloudOn && <div style={{marginTop:16}}>
+        <h3 style={{fontSize:14,marginBottom:6}}>Google Drive backups</h3>
+        <Btn onClick={async()=>{ try{ await cloudEnsureToken(); setCbk(await cloudListBackups()); }catch(e){ alert('Could not reach Google Drive: '+e.message); } }}>Show Drive backups</Btn>
+        {cbk && (cbk.length===0?<p className="small" style={{marginTop:8}}>No Drive backups yet - one is created each day you save.</p>:
+          <table style={{marginTop:8}}><thead><tr><th>Backup</th><th>Action</th></tr></thead><tbody>{cbk.map(f=><tr key={f.id}><td>{f.name.replace('vcc-backup-','').replace('.json','')}</td><td><Btn onClick={async()=>{ try{ const d=await (await drive('/drive/v3/files/'+f.id+'?alt=media')).json(); onRestore(d.comparisons,d.lastRef,null,'the Drive backup of '+f.name.replace('vcc-backup-','').replace('.json','')); }catch(e){ alert('Restore failed: '+e.message); } }}>Restore</Btn></td></tr>)}</tbody></table>)}
+      </div>}
+    </div>}
+
+    <div className="card">
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:10,marginBottom:12}}>
+        <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+          {['All',...STATUSES].map(f=><button key={f} type="button" className={'chip'+(filter===f?' on':'')} onClick={()=>setFilter(f)}>{f} ({f==='All'?rows.length:count(f)})</button>)}
+        </div>
+        <input className="search" placeholder="Search activity, ref no. or vendor" value={q} onChange={e=>setQ(e.target.value)}/>
+      </div>
+      {rows.length===0 ? <p className="small">No comparisons yet. Choose "+ New comparison" to start, or load the sample data inside the editor.</p> :
+       shown.length===0 ? <p className="small">No activities match this filter.</p> : (
+        <div style={{overflowX:'auto'}}>
+        <table>
+          <thead><tr><th>Reference No.</th><th>Activity</th><th>Status</th><th>Date</th><th>Lines</th><th>Vendors</th><th>L1 vendor</th><th style={{textAlign:'right'}}>Grand total</th><th>Action</th></tr></thead>
+          <tbody>
+            {shown.map(r=>(
+              <tr key={r.refNo} className={ROW_CLS[r.status]}>
+                <td className="num">{formatRef(r.refNo)}</td>
+                <td>{r.project.activityName || '\u2014'}</td>
+                <td><select className={'status-select '+STATUS_CLS[r.status]} value={r.status} onChange={e=>onStatus(r.refNo,e.target.value)}>{STATUSES.map(st=><option key={st}>{st}</option>)}</select></td>
+                <td>{r.project.comparisonDate || '\u2014'}</td>
+                <td className="num">{r.nLines}</td><td className="num">{r.nVendors}</td>
+                <td>{r.l1Name}</td>
+                <td className="num" style={{textAlign:'right'}}>{r.grandTotal!==null?formatINR(r.grandTotal):'\u2014'}</td>
+                <td style={{whiteSpace:'nowrap'}}>
+                  <Btn onClick={()=>onOpen(r.refNo)}>Open</Btn>{' '}<Btn onClick={()=>onDuplicate(r.refNo)}>Duplicate</Btn>{' '}<Btn variant="danger" onClick={()=>onDelete(r.refNo)}>Delete</Btn>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        </div>
+      )}
+    </div>
+  </div>;
+}
+
+/* ---------------- Vendor Cards ---------------- */
+const VFIELDS=[['name','Vendor name','e.g. ABC Facility Services'],['type','Vendor type','e.g. External Vendor'],['code','Vendor code','e.g. VEN-001'],
+ ['deliveryTimeline','Delivery timeline','e.g. 2 weeks'],['paymentTerms','Payment terms','e.g. 30 days credit'],
+ ['quotationValidity','Quotation validity','e.g. 30 days'],['warranty','Warranty details','e.g. 12 months']];
+
+function VendorCards({vendors,onChange,rankByVendorId,quotations,onQuotationUpload,onQuotationRemove,onVendorCountChange}){
+  const updateField=(id,key,val)=> onChange(vendors.map(v=>{
+    if(v.id!==id) return v;
+    if(key==='name'){
+      // Only re-default the fee if the user hasn't manually set one for this vendor yet.
+      if(!v.feeManual) return {...v, name:val, feePercent: isCBRE(val) ? CBRE_FEE_PCT : 0};
+      return {...v, name:val};
+    }
+    return {...v, [key]:val};
+  }));
+  const updateFee=(id,raw)=> onChange(vendors.map(v=>{
+    if(v.id!==id) return v;
+    if(raw===''){ return {...v, feePercent:0, feeManual:true}; }
+    const num = safeNum(raw);
+    return {...v, feePercent: num<0?0:num, feeManual:true};
+  }));
+  const resetFeeToDefault=(id)=> onChange(vendors.map(v=> v.id===id ? {...v, feePercent: isCBRE(v.name)?CBRE_FEE_PCT:0, feeManual:false} : v));
+
+  return <div className="card">
+    <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:12,marginBottom:4}}>
+      <div>
+        <h2 style={{fontSize:17}}>Vendor details</h2>
+        <p className="small" style={{marginTop:4,maxWidth:640}}>Management fee defaults to 3% when a vendor name contains <b>CBRE</b> and 0% otherwise - but it's editable for every vendor. Once you change it manually, the app keeps your value even if you edit the vendor name. Uploaded quotations stay attached to their vendor (and follow it if its L-rank changes) for this browser session, but aren't stored by Save/Load — re-attach them after reopening a comparison.</p>
+      </div>
+      <div className="field" style={{minWidth:140}}>Number of vendors
+        <div className="stepper"><Btn onClick={()=>onVendorCountChange(vendors.length-1)} disabled={vendors.length<=1}>&minus;</Btn><span className="n num">{vendors.length}</span><Btn onClick={()=>onVendorCountChange(vendors.length+1)}>+</Btn><Btn onClick={()=>onVendorCountChange(vendors.length+5)}>+5</Btn></div>
+      </div>
+    </div>
+    <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill, minmax(240px, 1fr))',gap:16,marginTop:10}}>
+      {vendors.map((v,idx)=>{
+        const rank = rankByVendorId[v.id];
+        const cbre = isCBRE(v.name);
+        const q = quotations[v.id];
+        return <div key={v.id} className={"vendor-card"+(rank?(' '+rankColorClass(rank)):'')}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10}}>
+            <span className="pill">Vendor {idx+1}</span>
+            <span style={{display:'flex',gap:6}}>
+              {cbre && <span className="badge-cbre">CBRE</span>}
+              {rank && <span className={"rank-badge rank-"+rankColorClass(rank)}>{rank}</span>}
+            </span>
+          </div>
+          <div style={{display:'flex',flexDirection:'column',gap:8}}>
+            {VFIELDS.map(([key,label,ph])=>(
+              <label key={key} className="field" style={{textTransform:'none',fontSize:11}}>{label}
+                <input value={v[key]} placeholder={ph} onChange={e=>updateField(v.id,key,e.target.value)} />
+              </label>
+            ))}
+            <label className="field" style={{textTransform:'none',fontSize:11}}>
+              Management fee %{v.feeManual ? <span style={{fontWeight:400,color:'#8a6d1b'}}> (custom)</span> : <span style={{fontWeight:400,color:'#8c97a6'}}> (default)</span>}
+              <div style={{display:'flex',alignItems:'center',gap:6}}>
+                <input type="number" min="0" step="0.1" value={v.feePercent??0} onChange={e=>updateFee(v.id,e.target.value)} style={{maxWidth:90}}/>
+                <span className="small">%</span>
+                {v.feeManual && <button type="button" className="btn" style={{padding:'3px 8px',fontSize:11}} onClick={()=>resetFeeToDefault(v.id)}>Use default</button>}
+              </div>
+            </label>
+            <label className="field" style={{textTransform:'none',fontSize:11}}>Quotation
+              {q ? (
+                <div style={{display:'flex',alignItems:'center',gap:6,marginTop:3,flexWrap:'wrap'}}>
+                  <a href={q.url} target="_blank" rel="noopener noreferrer" style={{fontSize:12,color:'#111c2c',textDecoration:'underline',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:130}} title={q.name}>📎 {q.name}</a>
+                  <label className="btn" style={{padding:'3px 8px',fontSize:11,cursor:'pointer',margin:0}}>
+                    Replace
+                    <input type="file" style={{display:'none'}} accept=".pdf,.xlsx,.xls,.msg,.eml,.jpg,.jpeg,.png" onChange={e=>e.target.files[0] && onQuotationUpload(v.id, e.target.files[0])}/>
+                  </label>
+                  <button type="button" className="btn danger" style={{padding:'3px 8px',fontSize:11}} onClick={()=>onQuotationRemove(v.id)}>Remove</button>
+                </div>
+              ) : (
+                <label className="btn" style={{padding:'6px 10px',fontSize:12,cursor:'pointer',display:'inline-block',marginTop:3}}>
+                  Upload from Device
+                  <input type="file" style={{display:'none'}} accept=".pdf,.xlsx,.xls,.msg,.eml,.jpg,.jpeg,.png" onChange={e=>e.target.files[0] && onQuotationUpload(v.id, e.target.files[0])}/>
+                </label>
+              )}
+            </label>
+          </div>
+        </div>;
+      })}
+    </div>
+  </div>;
+}
+
+/* ---------------- BOQ + pricing table ---------------- */
+const UOMS=['Nos','Mtr','Sqft','Sqm','Job','Kg','Ltr','Set','Lot','Hour','Day','Month'];
+
+function BOQTable({boqLines,vendors,rates,onLines,onRates}){
+  const atMax = boqLines.length>=MAX_LINES;
+  const updateLine=(id,patch)=> onLines(boqLines.map(l=>l.id===id?{...l,...patch}:l));
+  const addLine=(n=1)=>{ onLines([...boqLines,...Array.from({length:n},(_,i)=>({id:uid('boq'),sno:boqLines.length+1+i,description:'',uom:'',qty:null,gstPercent:18}))]); };
+  const deleteLine=(id)=>{ const rem=boqLines.filter(l=>l.id!==id).map((l,i)=>({...l,sno:i+1})); onLines(rem.length?rem:boqLines); };
+  const setRate=(vId,lId,raw)=>{
+    const key=rateKey(vId,lId);
+    if(raw.trim()===''){ const n={...rates}; delete n[key]; onRates(n); return; }
+    const num=safeNum(raw); onRates({...rates,[key]:num<0?0:num});
+  };
+  return <div className="card">
+    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:10,marginBottom:12}}>
+      <div>
+        <h2 style={{fontSize:17}}>BOQ &amp; vendor pricing</h2>
+        <p className="small" style={{marginTop:4}}>Amount is calculated automatically. Leave a rate blank if a vendor hasn't quoted that item.</p>
+      </div>
+      <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}>
+        <Btn variant="primary" onClick={()=>addLine(1)}>+ Add BOQ line</Btn><Btn onClick={()=>addLine(5)}>+ Add 5 lines</Btn><Btn onClick={()=>addLine(10)}>+ Add 10 lines</Btn>
+      </div>
+    </div>
+    {atMax && <p className="warn-box" style={{marginBottom:10}}>Maximum 20 BOQ lines allowed.</p>}
+    <div style={{overflowX:'auto'}}>
+    <table style={{minWidth:1000}}>
+      <thead><tr>
+        <th style={{textAlign:'center'}}>S.No.</th><th>Item description</th><th>UOM</th><th style={{textAlign:'right'}}>Qty</th><th style={{textAlign:'right'}}>GST %</th>
+        {vendors.map((v,i)=><th key={v.id} style={{textAlign:'right'}}>{v.name.trim()||('Vendor '+(i+1))} rate</th>)}
+        <th style={{textAlign:'center'}}>Action</th>
+      </tr></thead>
+      <tbody>
+        {boqLines.map(line=>(
+          <tr key={line.id}>
+            <td className="num" style={{textAlign:'center'}}>{line.sno}</td>
+            <td><input value={line.description} placeholder="Please enter an item description" onChange={e=>updateLine(line.id,{description:e.target.value})}/></td>
+            <td><input list="uoms" value={line.uom} placeholder="UOM" onChange={e=>updateLine(line.id,{uom:e.target.value})}/></td>
+            <td><input type="number" min="0" className="num" style={{textAlign:'right'}} value={line.qty??''} placeholder="Qty" onChange={e=>updateLine(line.id,{qty:e.target.value===''?null:safeNum(e.target.value)})}/></td>
+            <td><input type="number" min="0" max="100" className="num" style={{textAlign:'right'}} value={line.gstPercent} onChange={e=>updateLine(line.id,{gstPercent:safeNum(e.target.value)})}/></td>
+            {vendors.map(v=>{
+              const val = rates[rateKey(v.id,line.id)];
+              return <td key={v.id}><input type="number" min="0" className="num" style={{textAlign:'right'}} value={val??''} placeholder="Not quoted" onChange={e=>setRate(v.id,line.id,e.target.value)}/></td>;
+            })}
+            <td style={{textAlign:'center'}}><Btn variant="danger" disabled={boqLines.length===1} onClick={()=>deleteLine(line.id)}>Delete</Btn></td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+    <datalist id="uoms">{UOMS.map(u=><option key={u} value={u}/>)}</datalist>
+    </div>
+  </div>;
+}
+
+/* ---------------- Selected vendor banner + summary cards ---------------- */
+function SelectedVendorBanner({l1}){
+  if(!l1) return <div className="err-box">No vendor has a complete quote yet, so a selected vendor (L1) cannot be determined.</div>;
+  return <div className="selected-banner">
+    <div>
+      <div className="pill" style={{color:'#1e7a46'}}>Selected vendor · L1</div>
+      <div style={{fontSize:20,fontWeight:700,marginTop:2}}>{l1.vendor.name.trim()||'—'}{l1.isTie?' (Tie)':''}</div>
+    </div>
+    <div style={{textAlign:'right'}}>
+      <div className="pill" style={{color:'#1e7a46'}}>Final evaluated cost</div>
+      <div className="num" style={{fontSize:20,fontWeight:700}}>{formatINR(l1.grandTotal)}</div>
+    </div>
+  </div>;
+}
+
+function CostSummaryCards({ordered}){
+  return <div className="card">
+    <h2 style={{fontSize:17,marginBottom:4}}>Live cost summary</h2>
+    <p className="small" style={{marginBottom:14}}>Recalculates instantly as quantities, rates, GST or vendor names change.</p>
+    <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill, minmax(240px, 1fr))',gap:16}}>
+      {ordered.map(r=>(
+        <div key={r.vendor.id} className={"vendor-card "+rankColorClass(r.rank)}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
+            <div>
+              <div className="pill">{r.vendor.name.trim()||'Unnamed vendor'}</div>
+              {r.isCBRE && <span className="badge-cbre" style={{marginTop:4,display:'inline-block'}}>CBRE · {r.managementFeePercent}% fee</span>}
+            </div>
+            <span className={"rank-badge rank-"+rankColorClass(r.rank)}>{r.rank==='NR'?'Not ranked':(r.rank+(r.isTie?' · Tie':''))}</span>
+          </div>
+          <div style={{marginTop:10,fontSize:13}}>
+            <Row label="Basic cost" val={formatINR(r.basicSubtotal)}/>
+            <Row label={"Management fee ("+r.managementFeePercent+"%)"} val={formatINR(r.managementFee)}/>
+            <Row label="GST" val={formatINR(r.gstAmount)}/>
+            <div style={{borderTop:'1px solid var(--line)',marginTop:6,paddingTop:6,display:'flex',justifyContent:'space-between',fontWeight:700}}>
+              <span>Grand total</span><span className="num">{formatINR(r.grandTotal)}</span>
+            </div>
+          </div>
+          {!r.isComplete && <p className="err-box" style={{marginTop:10,fontSize:12}}>Vendor quote is incomplete and cannot be considered for L1/L2/L3 ranking. Missing rate for line{r.missingLineNumbers.length>1?'s':''} {r.missingLineNumbers.join(', ')}.</p>}
+          {r.rank==='L1' && <div style={{marginTop:10,fontSize:11,fontWeight:700,color:'#1e7a46'}}>★ SELECTED VENDOR</div>}
+        </div>
+      ))}
+    </div>
+  </div>;
+}
+function Row({label,val}){
+  return <div style={{display:'flex',justifyContent:'space-between',padding:'2px 0'}}><span className="small">{label}</span><span className="num">{val}</span></div>;
+}
+
+/* ---------------- Comparison preview (also used for Print) ---------------- */
+function ComparisonPreview({project,refNo,boqLines,ordered}){
+  const topN = ordered; // all vendors, in current rank order - dynamic count
+  const l1 = topN.find(r=>r.rank==='L1');
+  return <div className="card" id="print-area">
+    <div style={{borderBottom:'2px solid var(--ink)',paddingBottom:10,marginBottom:14}}>
+      <div className="pill">Cost comparison</div>
+      <h2 style={{fontSize:22}}>{project.activityName||'Untitled activity'}</h2>
+      <div className="small" style={{marginTop:4,display:'flex',gap:18,flexWrap:'wrap'}}>
+        <span>Reference: {refNo?formatRef(refNo):'Not yet saved'}</span>
+        <span>Date: {project.comparisonDate||'—'}</span>
+        <span>Prepared by: {project.preparedBy||'—'}</span>
+        <span>Department: {project.department||'—'}</span>
+      </div>
+    </div>
+
+    <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill, minmax(160px, 1fr))',gap:12,marginBottom:12}}>
+      {topN.map(r=>(
+        <div key={r.vendor.id} className={"vendor-card "+rankColorClass(r.rank)} style={{textAlign:'center'}}>
+          <div className="pill">{r.rank==='NR'?'Not ranked':r.rank}{r.isTie?' (Tie)':''}</div>
+          <div style={{fontWeight:700,marginTop:2}}>{r.vendor.name.trim()||'—'}</div>
+          {r.rank==='L1' && <div style={{fontSize:10,fontWeight:700,color:'#1e7a46',marginTop:2}}>SELECTED VENDOR</div>}
+        </div>
+      ))}
+    </div>
+
+    <div style={{overflowX:'auto'}}>
+    <table style={{minWidth:Math.max(900, 300+topN.length*160)}}>
+      <thead>
+        <tr>
+          <th rowSpan="2" style={{textAlign:'center'}}>S.No.</th>
+          <th rowSpan="2">Item description</th>
+          <th rowSpan="2" style={{textAlign:'center'}}>UOM</th>
+          <th rowSpan="2" style={{textAlign:'right'}}>Qty</th>
+          <th rowSpan="2" style={{textAlign:'right'}}>GST %</th>
+          {topN.map(r=><th key={r.vendor.id} colSpan="2" style={{textAlign:'center'}} className={"rank-"+rankColorClass(r.rank)}>{r.rank==='NR'?'NR':r.rank} — {r.vendor.name.trim()||'—'}</th>)}
+        </tr>
+        <tr>{topN.map(r=><React.Fragment key={r.vendor.id}><th style={{textAlign:'right'}}>Rate</th><th style={{textAlign:'right'}}>Amount</th></React.Fragment>)}</tr>
+      </thead>
+      <tbody>
+        {boqLines.map((line,i)=>(
+          <tr key={line.id}>
+            <td style={{textAlign:'center'}}>{line.sno}</td>
+            <td>{line.description||'—'}</td>
+            <td style={{textAlign:'center'}}>{line.uom||'—'}</td>
+            <td className="num" style={{textAlign:'right'}}>{line.qty??'—'}</td>
+            <td className="num" style={{textAlign:'right'}}>{line.gstPercent}%</td>
+            {topN.map(r=>{
+              const lr=r.lines.find(l=>l.lineId===line.id);
+              return <React.Fragment key={r.vendor.id}>
+                <td className="num" style={{textAlign:'right'}}>{lr&&lr.rate!==null?formatINR(lr.rate):'—'}</td>
+                <td className="num" style={{textAlign:'right'}}>{lr&&lr.amount!==null?formatINR(lr.amount):'Not Quoted'}</td>
+              </React.Fragment>;
+            })}
+          </tr>
+        ))}
+      </tbody>
+      <tfoot>
+        <tr style={{background:'#f6f7f9'}}>
+          <td colSpan="5" style={{textAlign:'right',fontWeight:700}}>Sub-Total</td>
+          {topN.map(r=><td key={r.vendor.id} colSpan="2" className="num" style={{textAlign:'right'}}>{formatINR(r.basicSubtotal)}</td>)}
+        </tr>
+        <tr style={{background:'#f6f7f9'}}>
+          <td colSpan="5" style={{textAlign:'right',fontWeight:700}}>Management Fee %</td>
+          {topN.map(r=><td key={r.vendor.id} colSpan="2" className="num" style={{textAlign:'right'}}>{r.managementFeePercent}%</td>)}
+        </tr>
+        <tr style={{background:'#f6f7f9'}}>
+          <td colSpan="5" style={{textAlign:'right',fontWeight:700}}>Management Fee Amount</td>
+          {topN.map(r=><td key={r.vendor.id} colSpan="2" className="num" style={{textAlign:'right'}}>{formatINR(r.managementFee)}</td>)}
+        </tr>
+        {[['Taxable Amount',r=>r.taxableAmount],['GST',r=>r.gstAmount]].map(([label,get])=>(
+          <tr key={label} style={{background:'#f6f7f9'}}>
+            <td colSpan="5" style={{textAlign:'right',fontWeight:700}}>{label}</td>
+            {topN.map(r=><td key={r.vendor.id} colSpan="2" className="num" style={{textAlign:'right'}}>{formatINR(get(r))}</td>)}
+          </tr>
+        ))}
+        <tr style={{background:'var(--ink)',color:'#fff'}}>
+          <td colSpan="5" style={{textAlign:'right',fontWeight:700}}>Grand Total</td>
+          {topN.map(r=><td key={r.vendor.id} colSpan="2" className="num" style={{textAlign:'right',fontWeight:700}}>{formatINR(r.grandTotal)}</td>)}
+        </tr>
+      </tfoot>
+    </table>
+    </div>
+
+    <div style={{marginTop:20}}>
+      <h3 style={{fontSize:15}}>Selected vendor — L1 commercial information</h3>
+      {l1 ? (
+        <table style={{marginTop:8,maxWidth:520}}><tbody>
+          {[['Vendor name',l1.vendor.name],['Vendor code',l1.vendor.code],['Delivery timeline',l1.vendor.deliveryTimeline],
+            ['Payment terms',l1.vendor.paymentTerms],['Quotation validity',l1.vendor.quotationValidity],['Warranty details',l1.vendor.warranty]].map(([label,val])=>(
+            <tr key={label}><td style={{fontWeight:600,width:180}}>{label}</td><td>{val||'—'}</td></tr>
+          ))}
+        </tbody></table>
+      ) : <p className="small">No vendor is currently selected as L1.</p>}
+      <details style={{marginTop:10}}>
+        <summary className="small" style={{cursor:'pointer'}}>Audit reference: other vendors' commercial details</summary>
+        <div className="grid grid-2" style={{marginTop:10}}>
+          {topN.filter(r=>r.rank!=='L1').map(r=>(
+            <table key={r.vendor.id}><tbody>
+              <tr><th colSpan="2">{r.rank==='NR'?'Not ranked':r.rank} — {r.vendor.name||'—'}</th></tr>
+              {[['Vendor code',r.vendor.code],['Delivery timeline',r.vendor.deliveryTimeline],['Payment terms',r.vendor.paymentTerms],
+                ['Quotation validity',r.vendor.quotationValidity],['Warranty details',r.vendor.warranty]].map(([label,val])=>(
+                <tr key={label}><td style={{fontWeight:600,width:160}}>{label}</td><td>{val||'—'}</td></tr>
+              ))}
+            </tbody></table>
+          ))}
+        </div>
+      </details>
+    </div>
+  </div>;
+}
+
+/* ---------------- PDF export (redesigned) ---------------- */
+function exportPDF(project, refNo, boqLines, ordered){
+  const topN = ordered; // all vendors, dynamic count
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({orientation:'landscape',unit:'pt',format:'a4'});
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
+  const margin = 30;
+  const refText = refNo?formatRef(refNo):'Not yet saved';
+
+  const PALETTE = {
+    L1:{bg:[223,243,227],tx:[30,122,70],ln:[127,199,154]},
+    L2:{bg:[253,243,208],tx:[138,109,27],ln:[228,198,84]},
+    L3:{bg:[251,231,198],tx:[138,75,18],ln:[224,165,80]},
+    L4:{bg:[219,233,251],tx:[30,77,138],ln:[127,168,224]},
+    L5:{bg:[236,227,247],tx:[91,58,138],ln:[183,156,224]},
+    L6:{bg:[217,242,239],tx:[20,107,96],ln:[127,207,194]},
+    L7:{bg:[251,227,234],tx:[138,44,83],ln:[224,160,187]},
+    L8:{bg:[230,233,239],tx:[60,74,94],ln:[169,180,196]},
+    L9:{bg:[240,227,213],tx:[122,74,30],ln:[203,163,110]},
+    L10:{bg:[225,228,251],tx:[51,54,138],ln:[163,168,230]},
+    NR:{bg:[246,247,249],tx:[80,80,80],ln:[200,200,200]},
+  };
+  const rankColor = (rank)=> PALETTE[rankColorClass(rank)] || PALETTE.NR;
+
+  function drawHeader(){
+    doc.setTextColor(17,28,44);
+    doc.setFont('helvetica','bold'); doc.setFontSize(17);
+    doc.text('COST COMPARISON', margin, 34);
+    doc.setDrawColor(17,28,44); doc.setLineWidth(1);
+    doc.line(margin, 42, pageW-margin, 42);
+
+    doc.setFont('helvetica','normal'); doc.setFontSize(9.5);
+    doc.setTextColor(80,90,105);
+    const meta = [
+      ['Activity Name', project.activityName || '-'],
+      ['Comparison Reference No.', refText],
+      ['Comparison Date', project.comparisonDate || '-'],
+      ['Prepared By', project.preparedBy || '-'],
+    ];
+    let mx = margin, my = 56;
+    meta.forEach(([label,val],i)=>{
+      doc.setFont('helvetica','bold'); doc.setTextColor(17,28,44);
+      doc.text(label+':', mx, my);
+      doc.setFont('helvetica','normal'); doc.setTextColor(80,90,105);
+      doc.text(String(val), mx, my+12);
+      mx += (pageW - margin*2)/4;
+    });
+    return 82;
+  }
+
+  function drawVendorSummary(y){
+    // Wraps to additional rows once vendors no longer fit comfortably in one row
+    // (roughly 6 per row at this page width) - keeps each box legible at higher vendor counts.
+    const perRow = Math.max(1, Math.min(topN.length, Math.floor((pageW-margin*2+10)/130)));
+    const gap=10, w=(pageW-margin*2-gap*(perRow-1))/perRow;
+    const boxH = 38, rowGap = 8;
+    topN.forEach((r,i)=>{
+      const col = i % perRow, rowI = Math.floor(i/perRow);
+      const x = margin + col*(w+gap);
+      const by = y + rowI*(boxH+rowGap);
+      const c = rankColor(r.rank);
+      doc.setFillColor(...c.bg); doc.setDrawColor(...c.ln); doc.setLineWidth(1);
+      doc.roundedRect(x,by,w,boxH,4,4,'FD');
+      doc.setTextColor(...c.tx); doc.setFont('helvetica','bold'); doc.setFontSize(9);
+      doc.text((r.rank==='NR'?'NOT RANKED':r.rank)+(r.isTie?' (TIE)':''), x+10, by+15);
+      doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(17,28,44);
+      const nameMax = Math.floor(w/5.2);
+      let name = r.vendor.name.trim()||'-';
+      if(name.length>nameMax) name = name.slice(0,nameMax-1)+'…';
+      doc.text(name, x+10, by+30);
+      if(r.rank==='L1' && w>110){
+        doc.setFont('helvetica','bold'); doc.setFontSize(7); doc.setTextColor(...c.tx);
+        doc.text('SELECTED', x+w-46, by+15);
+      }
+    });
+    const rows = Math.ceil(topN.length/perRow);
+    return y + rows*(boxH+rowGap) + 8;
+  }
+
+  let y = drawHeader();
+  y = drawVendorSummary(y);
+
+  // BOQ table
+  const head = [
+    [
+      {content:'S.No.',rowSpan:2,styles:{halign:'center',valign:'middle'}},
+      {content:'Item Description',rowSpan:2,styles:{valign:'middle'}},
+      {content:'UOM',rowSpan:2,styles:{halign:'center',valign:'middle'}},
+      {content:'Qty',rowSpan:2,styles:{halign:'center',valign:'middle'}},
+      {content:'GST %',rowSpan:2,styles:{halign:'center',valign:'middle'}},
+      ...topN.map(r=>{ const c=rankColor(r.rank); return {content:(r.rank==='NR'?'NR':r.rank)+' - '+(r.vendor.name.trim()||'-'),colSpan:2,styles:{halign:'center',fillColor:c.bg,textColor:c.tx}}; })
+    ],
+    [...topN.flatMap(r=>{ const c=rankColor(r.rank); return [
+      {content:'Rate',styles:{halign:'right',fillColor:c.bg,textColor:c.tx,fontStyle:'normal'}},
+      {content:'Amount',styles:{halign:'right',fillColor:c.bg,textColor:c.tx,fontStyle:'normal'}},
+    ]; })]
+  ];
+  const body = boqLines.map(line=>{
+    const row=[line.sno, line.description||'-', line.uom||'-', line.qty??'-', (line.gstPercent+'%')];
+    topN.forEach(r=>{
+      const lr = r.lines.find(l=>l.lineId===line.id);
+      row.push(lr && lr.rate!==null ? formatINRPdf(lr.rate) : '-');
+      row.push(lr && lr.amount!==null ? formatINRPdf(lr.amount) : 'Not Quoted');
+    });
+    return row;
+  });
+  const subTotalRow = [{content:'Sub-Total',colSpan:5,styles:{halign:'right',fontStyle:'bold'}}];
+  topN.forEach(r=> subTotalRow.push({content:formatINRPdf(r.basicSubtotal),colSpan:2,styles:{halign:'right'}}));
+  body.push(subTotalRow);
+  const feePctRow = [{content:'Management Fee %',colSpan:5,styles:{halign:'right',fontStyle:'bold'}}];
+  topN.forEach(r=> feePctRow.push({content:r.managementFeePercent+'%',colSpan:2,styles:{halign:'right'}}));
+  body.push(feePctRow);
+  const summaryRows = [
+    ['Management Fee Amount', r=>r.managementFee],
+    ['Taxable Amount', r=>r.taxableAmount],
+    ['GST', r=>r.gstAmount],
+  ];
+  summaryRows.forEach(([label,get])=>{
+    const row=[{content:label,colSpan:5,styles:{halign:'right',fontStyle:'bold'}}];
+    topN.forEach(r=> row.push({content:formatINRPdf(get(r)),colSpan:2,styles:{halign:'right'}}));
+    body.push(row);
+  });
+  body.push([
+    {content:'Grand Total',colSpan:5,styles:{halign:'right',fontStyle:'bold',textColor:255,fillColor:[17,28,44]}},
+    ...topN.map(r=>{ const c=rankColor(r.rank); return {content:formatINRPdf(r.grandTotal),colSpan:2,styles:{halign:'right',fontStyle:'bold',textColor:255,fillColor:c.tx}}; })
+  ]);
+
+  doc.autoTable({
+    startY:y, margin:{left:margin,right:margin,bottom:46},
+    head, body, theme:'grid',
+    styles:{font:'helvetica',fontSize:topN.length>6?7:8,cellPadding:topN.length>6?3:4,valign:'middle',lineColor:[210,216,224],lineWidth:.5,textColor:[30,38,50]},
+    headStyles:{fillColor:[246,247,249],textColor:[60,70,85],fontStyle:'bold',halign:'center'},
+    alternateRowStyles:{fillColor:[250,251,252]},
+    columnStyles:{0:{halign:'center',cellWidth:26},2:{halign:'center',cellWidth:28},3:{halign:'center',cellWidth:28},4:{halign:'center',cellWidth:28}},
+    showHead:'everyPage',
+    didParseCell:(d)=>{ if(d.column.index>=5 && d.section==='body') d.cell.styles.halign='right'; }
+  });
+
+  let afterY = doc.lastAutoTable.finalY + 20;
+  if(afterY > pageH - 130){ doc.addPage(); afterY = 40; }
+
+  const l1 = topN.find(r=>r.rank==='L1');
+  doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(17,28,44);
+  doc.text('SELECTED VENDOR - L1', margin, afterY);
+  if(l1){
+    const c = rankColor('L1');
+    doc.setFillColor(...c.bg); doc.setDrawColor(...c.ln);
+    doc.roundedRect(margin, afterY+8, pageW-margin*2, 60, 4, 4, 'FD');
+    const cols = [
+      ['Vendor Name', l1.vendor.name||'-'],
+      ['Vendor Code', l1.vendor.code||'-'],
+      ['Delivery Timeline', l1.vendor.deliveryTimeline||'-'],
+      ['Payment Terms', l1.vendor.paymentTerms||'-'],
+      ['Quotation Validity', l1.vendor.quotationValidity||'-'],
+      ['Warranty Details', l1.vendor.warranty||'-'],
+    ];
+    const cw = (pageW-margin*2-20)/3;
+    cols.forEach(([label,val],i)=>{
+      const cx = margin+10 + (i%3)*cw;
+      const cy = afterY+24 + Math.floor(i/3)*26;
+      doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(...c.tx);
+      doc.text(label, cx, cy);
+      doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(17,28,44);
+      doc.text(String(val), cx, cy+12);
+    });
+    afterY += 8+60+14;
+  } else {
+    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(120,120,120);
+    doc.text('No vendor currently qualifies as the selected vendor (L1).', margin, afterY+16);
+  }
+
+  // footer on every page
+  const pageCount = doc.getNumberOfPages();
+  for(let i=1;i<=pageCount;i++){
+    doc.setPage(i);
+    doc.setDrawColor(210,216,224); doc.setLineWidth(.5);
+    doc.line(margin, pageH-26, pageW-margin, pageH-26);
+    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(120,130,145);
+    doc.text('Cost Comparison - '+refText, margin, pageH-14);
+    doc.text('Page '+i+' of '+pageCount, pageW-margin, pageH-14, {align:'right'});
+  }
+
+  const dateStr = (project.comparisonDate||new Date().toISOString().slice(0,10)).replace(/-/g,'');
+  const slug = (project.activityName||'Comparison').replace(/[^a-z0-9]+/gi,'_').replace(/^_+|_+$/g,'');
+  doc.save('Cost_Comparison_'+slug+'_'+dateStr+'.pdf');
+}
+
+/* ---------------- Excel export (formula-driven, via xlsx-populate) ---------------- */
+function colLetter(n){ // 1-indexed -> 'A','B',...
+  let s=''; while(n>0){ const m=(n-1)%26; s=String.fromCharCode(65+m)+s; n=Math.floor((n-1)/26); } return s;
+}
+function clampWidth(w){ return Math.max(6, Math.min(50, w)); }
+
+const XL_GREEN={bg:'DFF3E3',text:'1E7A46',line:'7FC79A'};
+const XL_YELLOW={bg:'FDF3D0',text:'8A6D1B',line:'E4C654'};
+const XL_AMBER={bg:'FBE7C6',text:'8A4B12',line:'E0A550'};
+const XL_BLUE={bg:'DBE9FB',text:'1E4D8A',line:'7FA8E0'};
+const XL_PURPLE={bg:'ECE3F7',text:'5B3A8A',line:'B79CE0'};
+const XL_TEAL={bg:'D9F2EF',text:'146B60',line:'7FCFC2'};
+const XL_ROSE={bg:'FBE3EA',text:'8A2C53',line:'E0A0BB'};
+const XL_SLATE={bg:'E6E9EF',text:'3C4A5E',line:'A9B4C4'};
+const XL_BROWN={bg:'F0E3D5',text:'7A4A1E',line:'CBA36E'};
+const XL_INDIGO={bg:'E1E4FB',text:'33368A',line:'A3A8E6'};
+const XL_GREY={bg:'F6F7F9',text:'505A69',line:'D2D8E0'};
+const XL_INK={bg:'111C2C',text:'FFFFFF',line:'111C2C'};
+const XL_PALETTE={L1:XL_GREEN,L2:XL_YELLOW,L3:XL_AMBER,L4:XL_BLUE,L5:XL_PURPLE,L6:XL_TEAL,L7:XL_ROSE,L8:XL_SLATE,L9:XL_BROWN,L10:XL_INDIGO,NR:XL_GREY};
+function xlColorFor(rank){ return XL_PALETTE[rankColorClass(rank)] || XL_GREY; }
+
+const MONEY_FMT = '"₹"#,##,##0.00';
+const PCT_FMT = '0%';
+
+async function buildCostComparisonWorkbook(project, refNo, boqLines, ordered, quotationFiles, opts){
+  const forZip = !!(opts && opts.forZip);
+  const topN = ordered; // all vendors, dynamic count (not capped at 3)
+  const refText = refNo?formatRef(refNo):'Not yet saved';
+  const l1 = topN.find(r=>r.rank==='L1');
+
+  const workbook = await XlsxPopulate.fromBlankAsync();
+  const sheet = workbook.sheet(0);
+  sheet.name('Cost Comparison');
+
+  const TOTAL_COLS = 5 + topN.length*2; // S.No, Description, UOM, Qty, GST%, then (Rate, Amount) per vendor - dynamic count
+
+  const cell = (r,c)=> sheet.cell(r,c);
+  const merge = (r1,c1,r2,c2)=> sheet.range(r1,c1,r2,c2).merged(true);
+  const THIN='9AA5B4', MED='111C2C';
+  // Vendor blocks are 2 cols each, starting at column 6. Dynamic for any vendor count.
+  const blockStarts = [1, ...topN.map((_,vi)=>6+vi*2)];
+  const blockEnds = [5, ...topN.map((_,vi)=>7+vi*2)];
+  const isBlockStart = (c)=> blockStarts.includes(c);
+  const isBlockEnd = (c)=> blockEnds.includes(c);
+  // Always writes the full 4-side border object in one call per cell (never a partial
+  // side-only object), so a later call can't silently wipe sides an earlier call set -
+  // xlsx-populate treats `style('border', obj)` as replacing the whole border, not merging.
+  const applyGridBorders = (r1,c1,r2,c2)=>{
+    for(let r=r1;r<=r2;r++){
+      for(let c=c1;c<=c2;c++){
+        cell(r,c).style('border',{
+          top:{style:(r===r1)?'medium':'thin', color:(r===r1)?MED:THIN},
+          bottom:{style:(r===r2)?'medium':'thin', color:(r===r2)?MED:THIN},
+          left:{style:isBlockStart(c)?'medium':'thin', color:isBlockStart(c)?MED:THIN},
+          right:{style:isBlockEnd(c)?'medium':'thin', color:isBlockEnd(c)?MED:THIN},
+        });
+      }
+    }
+  };
+
+  let row = 1;
+
+  // ---- Title & header meta ----
+  cell(row,1).value('COST COMPARISON').style({bold:true,fontSize:16,fontColor:'FFFFFF',fill:'111C2C',verticalAlignment:'center'});
+  merge(row,1,row,TOTAL_COLS); sheet.row(row).height(26); row++;
+
+  const metaRows=[['Reference No.:',refText],['Activity:',project.activityName||'-'],['Selected Vendor (L1):',l1?(l1.vendor.name||'-'):'-'],
+    ['Comparison Date:',project.comparisonDate||'-'],['Prepared By:',project.preparedBy||'-'],['Status:',project.status||'Pending']];
+  metaRows.forEach(([label,val])=>{
+    cell(row,1).value(label).style({bold:true});
+    cell(row,2).value(val);
+    merge(row,2,row,5);
+    row++;
+  });
+  row++;
+
+  cell(row,1).value(project.activityName || '-').style({bold:true,fontSize:12,wrapText:true});
+  merge(row,1,row,TOTAL_COLS); row++;
+
+  // ---- BOQ two-row header ----
+  const headerRow1 = row, headerRow2 = row+1;
+  const baseHeaders=['S.No.','Item Description','UOM','Qty','GST %'];
+  baseHeaders.forEach((h,i)=>{
+    const c=i+1;
+    cell(headerRow1,c).value(h).style({bold:true,fill:XL_GREY.bg,fontColor:XL_GREY.text,horizontalAlignment:'center',verticalAlignment:'center',wrapText:true,border:true});
+    merge(headerRow1,c,headerRow2,c);
+  });
+  topN.forEach((r,vi)=>{
+    const startCol = 6 + vi*2; // F,H,J
+    const colr = xlColorFor(r.rank);
+    const label = (r.rank==='NR'?'NR':r.rank)+' - '+(r.vendor.name.trim()||'-');
+    cell(headerRow1,startCol).value(label).style({bold:true,fill:colr.bg,fontColor:colr.text,horizontalAlignment:'center',verticalAlignment:'center',wrapText:true,border:true});
+    merge(headerRow1,startCol,headerRow1,startCol+1);
+    ['Rate','Amount'].forEach((sub,j)=>{
+      cell(headerRow2,startCol+j).value(sub).style({bold:true,fill:colr.bg,fontColor:colr.text,horizontalAlignment:'center',verticalAlignment:'center',border:true});
+    });
+  });
+  row = headerRow2+1;
+
+  // ---- Data rows (with live formulas) ----
+  const dataStart = row;
+  boqLines.forEach(line=>{
+    const r = row;
+    cell(r,1).value(line.sno).style({horizontalAlignment:'center',border:true});
+    cell(r,2).value(line.description||'-').style({wrapText:true,verticalAlignment:'top',border:true});
+    cell(r,3).value(line.uom||'-').style({horizontalAlignment:'center',border:true});
+    cell(r,4).value(line.qty===null||line.qty===undefined?'':line.qty).style({horizontalAlignment:'center',border:true});
+    cell(r,5).value((line.gstPercent||0)/100).style({horizontalAlignment:'center',numberFormat:PCT_FMT,border:true});
+    const D=colLetter(4);
+    topN.forEach((res,vi)=>{
+      const rateCol=6+vi*2, amtCol=rateCol+1;
+      const F=colLetter(rateCol);
+      const lr = res.lines.find(l=>l.lineId===line.id);
+      cell(r,rateCol).value(lr&&lr.rate!==null?lr.rate:'').style({numberFormat:MONEY_FMT,horizontalAlignment:'right',border:true});
+      cell(r,amtCol).formula('IF(OR('+D+r+'="",'+F+r+'=""),"",'+D+r+'*'+F+r+')').style({numberFormat:MONEY_FMT,horizontalAlignment:'right',border:true});
+    });
+    row++;
+  });
+  const dataEnd = row-1;
+  row++; // spacer
+
+  // ---- Cost summary ----
+  cell(row,1).value('Cost Summary').style({bold:true,fontSize:12});
+  merge(row,1,row,TOTAL_COLS); row++;
+
+  const summaryHeaderRow = row;
+  cell(row,1).value('Cost Component').style({bold:true,fill:XL_GREY.bg,fontColor:XL_GREY.text,border:true});
+  merge(row,1,row,5);
+  topN.forEach((r,vi)=>{
+    const startCol=6+vi*2, colr=xlColorFor(r.rank);
+    cell(row,startCol).value((r.rank==='NR'?'NR':r.rank)+' - '+(r.vendor.name.trim()||'-')).style({bold:true,fill:colr.bg,fontColor:colr.text,horizontalAlignment:'center',border:true});
+    merge(row,startCol,row,startCol+1);
+  });
+  row++;
+
+  function summaryLabelRow(label, bold){
+    cell(row,1).value(label).style({bold:!!bold});
+    merge(row,1,row,5);
+  }
+
+  const subTotalRow = row;
+  summaryLabelRow('BOQ Subtotal', true);
+  topN.forEach((r,vi)=>{
+    const startCol=6+vi*2, amtCol=startCol+1;
+    const Gc=colLetter(amtCol);
+    cell(row,startCol).formula('SUM('+Gc+dataStart+':'+Gc+dataEnd+')').style({bold:true,numberFormat:MONEY_FMT,horizontalAlignment:'right',fill:xlColorFor(r.rank).bg});
+    merge(row,startCol,row,startCol+1);
+  });
+  row++;
+
+  const feePctRow = row;
+  summaryLabelRow('CBRE Management Fee %');
+  topN.forEach((r,vi)=>{
+    const startCol=6+vi*2;
+    const c = cell(row,startCol);
+    // Fee is now freely editable per vendor (not locked to CBRE) - always reflect the
+    // vendor's actual final percentage, whatever it was set to.
+    c.value(r.managementFeePercent/100).style({numberFormat:PCT_FMT,horizontalAlignment:'right',fill:xlColorFor(r.rank).bg});
+    merge(row,startCol,row,startCol+1);
+    try{ c.dataValidation({type:'decimal',operator:'greaterThanOrEqual',formula1:'0',allowBlank:true,error:'Enter a percentage of 0 or more.'}); }catch(e){ /* validation is a convenience only - value above is still correct either way */ }
+  });
+  row++;
+
+  const feeAmtRow = row;
+  summaryLabelRow('CBRE Management Fee Amount');
+  topN.forEach((r,vi)=>{
+    const startCol=6+vi*2;
+    const S=colLetter(startCol);
+    cell(row,startCol).formula(S+subTotalRow+'*'+S+feePctRow).style({numberFormat:MONEY_FMT,horizontalAlignment:'right',fill:xlColorFor(r.rank).bg});
+    merge(row,startCol,row,startCol+1);
+  });
+  row++;
+
+  const taxableRow = row;
+  summaryLabelRow('Taxable Amount', true);
+  topN.forEach((r,vi)=>{
+    const startCol=6+vi*2;
+    const S=colLetter(startCol);
+    cell(row,startCol).formula(S+subTotalRow+'+'+S+feeAmtRow).style({bold:true,numberFormat:MONEY_FMT,horizontalAlignment:'right',fill:xlColorFor(r.rank).bg});
+    merge(row,startCol,row,startCol+1);
+  });
+  row++;
+
+  const gstPctRow = row;
+  summaryLabelRow('GST %');
+  topN.forEach((r,vi)=>{
+    const startCol=6+vi*2;
+    const E=colLetter(5);
+    // A plain reference to the first BOQ line's GST% cell - not a multi-cell array
+    // formula - so it behaves identically whether there's 1 line or 20. BOQ items
+    // share one configured GST rate in the common case; if lines do carry different
+    // rates, this shows the first line's rate as the comparison-level reference rate.
+    cell(row,startCol).formula('$'+E+'$'+dataStart).style({numberFormat:PCT_FMT,horizontalAlignment:'right',fill:xlColorFor(r.rank).bg});
+    merge(row,startCol,row,startCol+1);
+  });
+  row++;
+
+  const gstAmtRow = row;
+  summaryLabelRow('GST Amount', true);
+  topN.forEach((r,vi)=>{
+    const startCol=6+vi*2;
+    const S=colLetter(startCol), E=colLetter(5);
+    // GST Amount = Taxable Amount x GST% - a single-level multiplication referencing
+    // only two plain cells, so it never depends on how many BOQ rows exist.
+    cell(row,startCol).formula(S+taxableRow+'*$'+E+'$'+dataStart).style({bold:true,numberFormat:MONEY_FMT,horizontalAlignment:'right',fill:xlColorFor(r.rank).bg});
+    merge(row,startCol,row,startCol+1);
+  });
+  row++;
+
+  const grandTotalRow = row;
+  cell(row,1).value('Grand Total').style({bold:true,fill:'111C2C',fontColor:'FFFFFF'});
+  merge(row,1,row,5);
+  topN.forEach((r,vi)=>{
+    const startCol=6+vi*2;
+    const S=colLetter(startCol);
+    cell(row,startCol).formula(S+taxableRow+'+'+S+gstAmtRow).style({bold:true,fontSize:12,numberFormat:MONEY_FMT,horizontalAlignment:'right',fontColor:'FFFFFF',fill:r.rank==='L1'?'1E7A46':r.rank==='L2'?'8A6D1B':r.rank==='L3'?'8A4B12':'505A69'});
+    merge(row,startCol,row,startCol+1);
+  });
+  sheet.row(row).height(20);
+  row+=2;
+
+  // ---- Selected vendor (L1 only) ----
+  cell(row,1).value('SELECTED VENDOR – L1').style({bold:true,fontSize:12,fill:XL_GREEN.bg,fontColor:XL_GREEN.text});
+  merge(row,1,row,TOTAL_COLS); row++;
+  if(l1){
+    const fields=[['Vendor Name',l1.vendor.name],['Vendor Code',l1.vendor.code],['Delivery Timeline',l1.vendor.deliveryTimeline],
+      ['Payment Terms',l1.vendor.paymentTerms],['Quotation Validity',l1.vendor.quotationValidity],['Warranty Details',l1.vendor.warranty]];
+    fields.forEach(([label,val])=>{
+      cell(row,1).value(label).style({bold:true});
+      cell(row,2).value(val||'-').style({wrapText:true,verticalAlignment:'top'});
+      merge(row,2,row,6);
+      row++;
+    });
+  } else {
+    cell(row,1).value('No vendor currently qualifies as the selected vendor (L1).');
+    merge(row,1,row,TOTAL_COLS); row++;
+  }
+  row++;
+
+  // ---- Vendor Quotations (bottom section - does not touch the BOQ table or Cost
+  // Summary above it, own formatting only). The whole section is OMITTED when nothing
+  // has been uploaded for any vendor, and when it is shown, only vendors that actually
+  // have a file get a row - no blank/placeholder rows for the others. Links are
+  // relative paths ("L1/filename.pdf") that resolve when this workbook is kept
+  // alongside its L1/L2/L3 folders, i.e. when it's part of the "Export Complete ZIP"
+  // package - a plain hyperlink can't reach into a file that only exists in the
+  // browser tab that's exporting it. ----
+  const vendorsWithQuotes = topN.filter(r => quotationFiles && quotationFiles[r.vendor.id]);
+  let quotationSectionRow = null;
+  if(vendorsWithQuotes.length > 0){
+    quotationSectionRow = row;
+    cell(row,1).value('VENDOR QUOTATIONS').style({bold:true,fontSize:12,fill:XL_GREY.bg,fontColor:XL_GREY.text,border:true});
+    merge(row,1,row,TOTAL_COLS); row++;
+    cell(row,1).value('Vendor').style({bold:true,border:true,fill:XL_GREY.bg,fontColor:XL_GREY.text});
+    merge(row,1,row,5);
+    cell(row,6).value('Quotation').style({bold:true,border:true,fill:XL_GREY.bg,fontColor:XL_GREY.text});
+    merge(row,6,row,TOTAL_COLS); row++;
+    vendorsWithQuotes.forEach(r=>{
+      cell(row,1).value((r.rank==='NR'?'NR':r.rank)+' - '+(r.vendor.name.trim()||'-')).style({border:true});
+      merge(row,1,row,5);
+      const qCell = cell(row,6);
+      const file = quotationFiles[r.vendor.id];
+      const safe = sanitizeFilename(file.name);
+      const relPath = (r.rank==='L1'||r.rank==='L2'||r.rank==='L3') ? (r.rank+'/'+safe) : safe;
+      qCell.value(safe).style(forZip?{border:true,fontColor:'1155CC',underline:true}:{border:true});
+      if(forZip){ try{ qCell.hyperlink(relPath); }catch(e){ /* hyperlink is best-effort; filename still shown */ } }
+      merge(row,6,row,TOTAL_COLS);
+      row++;
+    });
+    if(forZip){
+      cell(row,1).value('Links resolve when this workbook is kept together with its L1/L2/L3 quotation folders (from "Export Complete ZIP").')
+        .style({italic:true,fontColor:'8C97A6',fontSize:8});
+      merge(row,1,row,TOTAL_COLS); row++;
+    } else {
+      cell(row,1).value('Quotation filenames are shown for reference. Use "Export Complete ZIP" to get an Excel with working links plus the actual attached files.')
+        .style({italic:true,fontColor:'8C97A6',fontSize:8});
+      merge(row,1,row,TOTAL_COLS); row++;
+    }
+  }
+
+  // ---- Grid borders: medium between vendor blocks (and around the S.No/Desc/UOM/Qty/GST
+  // block), thin everywhere else - applied once, after all cells/merges exist, so nothing
+  // gets partially overwritten. ----
+  applyGridBorders(headerRow1, 1, dataEnd, TOTAL_COLS);
+  applyGridBorders(summaryHeaderRow, 1, grandTotalRow, TOTAL_COLS);
+  if(quotationSectionRow !== null){
+    applyGridBorders(quotationSectionRow, 1, quotationSectionRow+1+vendorsWithQuotes.length, TOTAL_COLS);
+  }
+
+  // ---- Column widths (never exceed 50) + wrap text on long-content columns ----
+  sheet.column(1).width(clampWidth(7));
+  sheet.column(2).width(clampWidth(38)); // Item Description - wraps rather than growing past 50
+  sheet.column(3).width(clampWidth(8));
+  sheet.column(4).width(clampWidth(8));
+  sheet.column(5).width(clampWidth(9));
+  topN.forEach((r,vi)=>{
+    const startCol=6+vi*2;
+    sheet.column(startCol).width(clampWidth(13));
+    sheet.column(startCol+1).width(clampWidth(14));
+  });
+
+  // ---- Freeze header rows so BOQ/vendor headers stay visible while scrolling ----
+  try{ sheet.freezePanes(0, headerRow2); }catch(e){ /* not critical */ }
+
+  // ---- Best-effort print setup: A4 landscape, fit to 1 page wide, repeat header rows ----
+  try{
+    sheet._node.children.push({name:'pageSetup',children:[],attributes:{paperSize:'9',orientation:'landscape',fitToWidth:'1',fitToHeight:'0'}});
+    sheet._sheetPrNode = sheet._sheetPrNode || {name:'sheetPr',children:[],attributes:{}};
+    sheet._sheetPrNode.children.push({name:'pageSetUpPr',children:[],attributes:{fitToPage:'1'}});
+  }catch(e){ /* print setup is best-effort - the workbook is still fully correct without it */ }
+  try{ workbook.definedName('_xlnm.Print_Titles', "'Cost Comparison'!$1:$"+headerRow2); }catch(e){ /* not critical */ }
+
+  // ---- Force a full recalculation when the workbook is opened. xlsx-populate writes
+  // formulas but not cached results, so without this flag some Excel versions can show
+  // blank/stale values in formula cells (especially ones that reference other formula
+  // cells) until the user manually recalculates (F9). ----
+  try{
+    const wbNode = workbook._node;
+    let calcPr = wbNode.children.find(c=>c.name==='calcPr');
+    if(!calcPr){ calcPr = {name:'calcPr',children:[],attributes:{}}; wbNode.children.push(calcPr); }
+    calcPr.attributes.calcId = '0';
+    calcPr.attributes.fullCalcOnLoad = '1';
+    calcPr.attributes.forceFullCalc = '1';
+  }catch(e){ /* best effort - formulas are still correct even if this doesn't apply */ }
+
+  const dateStr=(project.comparisonDate||new Date().toISOString().slice(0,10)).replace(/-/g,'');
+  const slug=(project.activityName||'Comparison').replace(/[^a-z0-9]+/gi,'_').replace(/^_+|_+$/g,'');
+  const filename = 'Cost_Comparison_'+slug+'_'+dateStr+'.xlsx';
+
+  return {workbook, filename};
+}
+
+/** Standalone "Export Excel" button: builds the workbook (no quotation files passed,
+ * since without the ZIP there's nowhere for a relative link to resolve to) and
+ * downloads it directly. */
+async function exportExcel(project, refNo, boqLines, ordered, quotationFiles){
+  const {workbook, filename} = await buildCostComparisonWorkbook(project, refNo, boqLines, ordered, quotationFiles||{}, {forZip:false});
+  const blob = await workbook.outputAsync();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 4000);
+}
+
+function quotationFilesOnly(quotations){
+  const out={};
+  Object.keys(quotations||{}).forEach(id=>{ if(quotations[id] && quotations[id].file) out[id]=quotations[id].file; });
+  return out;
+}
+
+function sanitizeFilename(name){
+  return String(name||'file').replace(/[\\/:*?"<>|]+/g,'_').trim() || 'file';
+}
+
+/**
+ * Exports a single ZIP containing the same Excel workbook plus L1/L2/L3 folders
+ * holding each vendor's uploaded quotation (if any) - additive to, not a
+ * replacement for, the plain "Export Excel" / "Export PDF" buttons.
+ */
+async function exportZip(project, refNo, boqLines, ordered, quotationFiles){
+  const {workbook} = await buildCostComparisonWorkbook(project, refNo, boqLines, ordered, quotationFiles||{}, {forZip:true});
+  const xlsxBlob = await workbook.outputAsync();
+  const refText = refNo?formatRef(refNo):'Draft';
+  const xlsxFilename = 'Cost_Comparison_'+refText+'.xlsx';
+
+  const zip = new JSZip();
+  // `ordered` is recomputed (via useMemo, from the live comp.vendors/boqLines/rates) on
+  // every render and passed in fresh at click-time - it is never a cached/stale ranking.
+  // Each vendor's quotation file is looked up by vendor.id (stable per vendor, independent
+  // of vendor count or slot position) and placed into THAT vendor's rank *right now* - so
+  // if pricing changes flip who is L1, the very next ZIP export puts each file in its
+  // vendor's new folder, not its old one. Exactly one folder receives each file.
+  //
+  // Dynamic for any vendor count (1-10+): folders are created on demand per rank actually
+  // present in `ordered`, covering every ranked vendor - not a fixed L1/L2/L3 slice that
+  // would silently drop vendors 4+ once vendor count became configurable.
+  const folderCache = {};
+  const getFolder = (rankLabel) => {
+    if(!folderCache[rankLabel]) folderCache[rankLabel] = zip.folder(rankLabel);
+    return folderCache[rankLabel];
+  };
+  for(const r of ordered){
+    if(r.rank==='NR') continue; // incomplete quote has no L-rank folder to place a file in
+    const folder = getFolder(r.rank); // r.rank is this vendor's CURRENT rank, computed just now
+    const file = quotationFiles && quotationFiles[r.vendor.id];
+    if(file){
+      const buf = await file.arrayBuffer();
+      folder.file(sanitizeFilename(file.name), buf);
+    }
+    // no file -> folder stays present but empty, exactly as specced
+  }
+  zip.file(xlsxFilename, xlsxBlob);
+
+  const zipBlob = await zip.generateAsync({type:'blob'});
+  const zipName = 'Cost_Comparison_'+refText+'.zip';
+  const url = URL.createObjectURL(zipBlob);
+  const a = document.createElement('a');
+  a.href = url; a.download = zipName;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 4000);
+}
+
+/* ---------------- Editor ---------------- */
+function Editor({initial, onBack, onSaved}){
+  const [comp, setComp] = useState(initial);
+  const [dirty, setDirty] = useState(false);
+  const [showValidation, setShowValidation] = useState(false);
+  const [excelBusy, setExcelBusy] = useState(false);
+  const [excelError, setExcelError] = useState(null);
+  const [zipBusy, setZipBusy] = useState(false);
+  const [zipError, setZipError] = useState(null);
+  const [quotations, setQuotations] = useState({}); // {vendorId: {file, name, url}} - in-memory for this session only
+  const [confirmAsync, confirmDialog] = useConfirmDialog();
+
+  const handleQuotationUpload = (vendorId, file) => {
+    setQuotations(q=>{
+      const prev = q[vendorId];
+      if(prev && prev.url) URL.revokeObjectURL(prev.url);
+      return {...q, [vendorId]: {file, name: file.name, url: URL.createObjectURL(file)}};
+    });
+  };
+  const handleQuotationRemove = (vendorId) => {
+    setQuotations(q=>{
+      const prev = q[vendorId];
+      if(prev && prev.url) URL.revokeObjectURL(prev.url);
+      const next = {...q}; delete next[vendorId]; return next;
+    });
+  };
+
+  const setVendorCount = async (rawN) => {
+    const n = Math.max(1, Math.floor(safeNum(rawN))); // no cap on vendors
+    const current = comp.vendors;
+    if(n === current.length) return;
+    if(n < current.length){
+      const removed = current.slice(n);
+      const hasData = removed.some(v => v.name.trim()!=='' || quotations[v.id]);
+      if(hasData){
+        const names = removed.map(v=>v.name.trim()||'(unnamed)').join(', ');
+        const ok = await confirmAsync('Reducing to '+n+' vendor'+(n===1?'':'s')+' will remove: '+names+'. Continue?');
+        if(!ok) return;
+      }
+      const keepIds = new Set(current.slice(0,n).map(v=>v.id));
+      const nextRates = {...comp.rates};
+      Object.keys(nextRates).forEach(k=>{ const vId=k.split('::')[0]; if(!keepIds.has(vId)) delete nextRates[k]; });
+      setQuotations(q=>{
+        const next={...q};
+        removed.forEach(v=>{ if(next[v.id]){ if(next[v.id].url) URL.revokeObjectURL(next[v.id].url); delete next[v.id]; } });
+        return next;
+      });
+      mutate({vendors: current.slice(0,n), rates: nextRates});
+    } else {
+      const additions = [];
+      for(let i=current.length; i<n; i++){
+        additions.push({id:uid('vendor'), name:'', type:'', code:'', deliveryTimeline:'', paymentTerms:'', quotationValidity:'', warranty:'', feePercent:0, feeManual:false});
+      }
+      mutate({vendors:[...current, ...additions]});
+    }
+  };
+
+  const results = useMemo(()=> comp.vendors.map(v=>computeVendorResult(v,comp.boqLines,comp.rates)), [comp.vendors,comp.boqLines,comp.rates]);
+  const ordered = useMemo(()=> exportOrder(results), [results]);
+  const rankByVendorId = useMemo(()=>{ const m={}; ordered.forEach(r=>m[r.vendor.id]=r.rank); return m; }, [ordered]);
+  const l1 = ordered.find(r=>r.rank==='L1');
+
+  const mutate = (patch) => { setComp(c=>({...c,...patch})); setDirty(true); };
+  const setLines = (v) => mutate({boqLines:v});
+
+  const issues = useMemo(()=>{
+    const list=[];
+    comp.boqLines.forEach(l=>{
+      if(l.description.trim()==='') list.push('Line '+l.sno+': please enter an item description.');
+      if(l.uom.trim()==='') list.push('Line '+l.sno+': please select or enter a UOM.');
+      if(l.qty===null||l.qty<=0) list.push('Line '+l.sno+': please enter a valid quantity greater than zero.');
+      if(l.gstPercent<0||l.gstPercent>100) list.push('Line '+l.sno+': GST % must be between 0 and 100.');
+    });
+    comp.vendors.forEach((v,i)=>{ if(v.name.trim()==='') list.push('Vendor '+(i+1)+': please enter a vendor name.'); });
+    return list;
+  },[comp]);
+
+  const handleBack = async () => {
+    if(dirty){
+      const ok = await confirmAsync('You have unsaved changes. Leave without saving?');
+      if(!ok) return;
+    }
+    onBack();
+  };
+  const handleSave = () => { const saved = onSaved(comp); if(saved) setComp(saved); setDirty(false); };
+  const handleExportExcel = () => {
+    setShowValidation(true); setExcelError(null); setExcelBusy(true);
+    exportExcel(comp.project, comp.refNo, comp.boqLines, ordered, quotationFilesOnly(quotations))
+      .catch(err=>{ console.error(err); setExcelError('Excel export failed: '+(err && err.message ? err.message : 'unknown error')); })
+      .finally(()=>setExcelBusy(false));
+  };
+  const handleExportPDF = () => { setShowValidation(true); exportPDF(comp.project, comp.refNo, comp.boqLines, ordered); };
+  const handleExportZip = () => {
+    setShowValidation(true); setZipError(null); setZipBusy(true);
+    exportZip(comp.project, comp.refNo, comp.boqLines, ordered, quotationFilesOnly(quotations))
+      .catch(err=>{ console.error(err); setZipError('ZIP export failed: '+(err && err.message ? err.message : 'unknown error')); })
+      .finally(()=>setZipBusy(false));
+  };
+
+  return <div>
+    <div className="topbar">
+      <div className="container topbar-inner">
+        <div style={{display:'flex',alignItems:'center',gap:14}}>
+          <Btn onClick={handleBack}>&larr; Dashboard</Btn>
+          <div>
+            <div style={{fontWeight:700}}>{comp.refNo?formatRef(comp.refNo):'New comparison'}</div>
+            <div className="small">{comp.refNo?'Saved':'Not yet saved — will become '+formatRef(loadLastRef()+1)+' on Save'}</div>
+          </div>
+        </div>
+        <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+          <Btn onClick={async ()=>{ if(comp.boqLines.some(l=>l.description.trim()!=='')){ const ok = await confirmAsync('Replace current entries with sample data?'); if(!ok) return; } mutate(sampleState()); }}>Load sample</Btn>
+          <Btn onClick={async ()=>{ const ok = await confirmAsync('Clear this comparison? This cannot be undone.'); if(!ok) return; setComp({...blankState(), refNo:comp.refNo, isSaved:comp.isSaved}); setDirty(true); Object.values(quotations).forEach(q=>q.url&&URL.revokeObjectURL(q.url)); setQuotations({}); }} variant="danger">Reset</Btn>
+          <Btn onClick={()=>window.print()}>Preview / Print</Btn>
+          <Btn variant="primary" onClick={handleExportExcel} disabled={excelBusy}>{excelBusy?'Building Excel…':'Export Excel'}</Btn>
+          <Btn variant="primary" onClick={handleExportPDF}>Export PDF</Btn>
+          <Btn onClick={handleExportZip} disabled={zipBusy}>{zipBusy?'Building ZIP…':'Export Complete Package (.ZIP)'}</Btn>
+          <Btn variant="primary" onClick={handleSave}>Save</Btn>
+        </div>
+      </div>
+    </div>
+
+    <div className="container" style={{paddingTop:20,paddingBottom:60,display:'flex',flexDirection:'column',gap:18}}>
+      {showValidation && issues.length>0 && (
+        <div className="warn-box">
+          <b>Please review before exporting:</b>
+          <ul style={{margin:'6px 0 0 18px'}}>
+            {issues.slice(0,8).map((m,i)=><li key={i}>{m}</li>)}
+            {issues.length>8 && <li>...and {issues.length-8} more.</li>}
+          </ul>
+        </div>
+      )}
+      {excelError && (
+        <div className="err-box">{excelError}</div>
+      )}
+      {zipError && (
+        <div className="err-box">{zipError}</div>
+      )}
+
+      <div className="card">
+        <h2 style={{fontSize:17}}>Project details</h2>
+        <div className="grid grid-3" style={{marginTop:12}}>
+          <Field label="Activity name" value={comp.project.activityName} onChange={v=>mutate({project:{...comp.project,activityName:v}})} placeholder="e.g. Electrical Maintenance Work"/>
+          <Field label="Comparison date" type="date" value={comp.project.comparisonDate} onChange={v=>mutate({project:{...comp.project,comparisonDate:v}})}/>
+          <Field label="Prepared by" value={comp.project.preparedBy} onChange={v=>mutate({project:{...comp.project,preparedBy:v}})} placeholder="Name"/>
+          <Field label="Department / location" value={comp.project.department} onChange={v=>mutate({project:{...comp.project,department:v}})} placeholder="e.g. Gurugram Facility"/>
+          <label className="field">Activity status
+            <select value={comp.project.status||'Pending'} onChange={e=>mutate({project:{...comp.project,status:e.target.value}})}>{STATUSES.map(st=><option key={st}>{st}</option>)}</select>
+          </label>
+          <label className="field">Reference no. (auto)
+            <input value={comp.refNo?formatRef(comp.refNo):'Assigned on Save'} disabled />
+          </label>
+        </div>
+      </div>
+
+      <SelectedVendorBanner l1={l1}/>
+
+      <VendorCards vendors={comp.vendors} onChange={v=>mutate({vendors:v})} rankByVendorId={rankByVendorId} quotations={quotations} onQuotationUpload={handleQuotationUpload} onQuotationRemove={handleQuotationRemove} onVendorCountChange={setVendorCount}/>
+      <BOQTable boqLines={comp.boqLines} vendors={comp.vendors} rates={comp.rates} onLines={v=>mutate({boqLines:v})} onRates={v=>mutate({rates:v})}/>
+      <CostSummaryCards ordered={ordered}/>
+      <ComparisonPreview project={comp.project} refNo={comp.refNo} boqLines={comp.boqLines} ordered={ordered}/>
+    </div>
+    {confirmDialog}
+  </div>;
+}
+
+/* ---------------- App ---------------- */
+function App(){
+  const [view, setView] = useState('dashboard');
+  const [comparisons, setComparisons] = useState(()=>loadComparisons());
+  const [lastRef, setLastRef] = useState(()=>loadLastRef());
+  const [current, setCurrent] = useState(null);
+  const [confirmAsync, confirmDialog] = useConfirmDialog();
+
+  const cloudOn = CLOUD_ON();
+  const [signed,setSigned]=useState(!cloudOn); const [cState,setCState]=useState(cloudOn?'locked':'off'); const [cMsg,setCMsg]=useState('Signed out');
+  const [cErr,setCErr]=useState(''); const [cEmail,setCEmail]=useState(''); const [cBusy,setCBusy]=useState(cloudOn && !!localStorage.getItem('vcc_cloud_signed'));
+  const stamp=()=>new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  const pullAndSync = async () => {
+    setCState('syncing'); setCMsg('Syncing\u2026');
+    try{
+      const remote=await cloudPull(); const localTs=safeNum(localStorage.getItem('vcc_local_ts'));
+      if(remote && Array.isArray(remote.comparisons) && remote.ts>localTs){ // Drive copy is newer than this device: take it, keeping a local snapshot first
+        pushBackup(loadComparisons(),'Before cloud load');
+        saveComparisons(remote.comparisons,'Cloud load',true); localStorage.setItem('vcc_local_ts',String(remote.ts));
+        const nl=Math.max(remote.lastRef||0,loadLastRef()); saveLastRef(nl); setComparisons(remote.comparisons); setLastRef(nl);
+      } else { await cloudPushNow(); }
+      setCState('ok'); setCMsg('Synced '+stamp());
+    }catch(e){ setCState('error'); setCMsg('Sync failed: '+e.message); }
+  };
+  const doSignIn = async (prompt) => {
+    setCErr(''); setCBusy(true);
+    try{ const em=await cloudSignIn(prompt); setCEmail(em); setSigned(true); localStorage.setItem('vcc_cloud_signed','1'); setCBusy(false); await pullAndSync(); }
+    catch(e){ setCErr(e.message); setSigned(false); setCBusy(false); }
+  };
+  const doSync = () => { if(Cloud.token && Date.now()<Cloud.exp) pullAndSync(); else doSignIn(''); };
+  const doSignOut = async () => {
+    const ok=await confirmAsync('Sign out? Your latest data is saved to Google Drive first, then the copy kept on this device is removed.'); if(!ok) return;
+    try{ await cloudEnsureToken(); await cloudPushNow(); }
+    catch(e){ const f=await confirmAsync('Could not save to Google Drive ('+e.message+'). Sign out anyway and REMOVE the unsynced local data?'); if(!f) return; }
+    if(Cloud.token) google.accounts.oauth2.revoke(Cloud.token,()=>{});
+    Cloud.token=null; Cloud.fileId=null; Cloud.email=null;
+    [LS_COMPARISONS,LS_LASTREF,LS_BACKUPS,'vcc_local_ts','vcc_cloud_signed','vcc_cloud_bk_day'].forEach(k=>localStorage.removeItem(k));
+    setComparisons([]); setLastRef(0); setCurrent(null); setView('dashboard'); setSigned(false); setCEmail(''); setCState('locked'); setCMsg('Signed out');
+  };
+  useEffect(()=>{ if(cloudOn && localStorage.getItem('vcc_cloud_signed')) doSignIn(''); },[]);
+  useEffect(()=>{
+    if(!cloudOn||!signed) return; let t;
+    window.__cloudPush=()=>{ clearTimeout(t); t=setTimeout(async()=>{ try{ setCState('syncing'); setCMsg('Saving to Drive\u2026'); await cloudEnsureToken(); await cloudPushNow(); setCState('ok'); setCMsg('Saved to Drive '+stamp()); }catch(e){ setCState('error'); setCMsg('Not saved to Drive - press Sync now'); } },1200); };
+    return ()=>{ window.__cloudPush=null; clearTimeout(t); };
+  },[signed]);
+  const cloud={on:cloudOn,state:cState,msg:cMsg,email:cEmail,sync:doSync,signOut:doSignOut};
+
+  const goDashboard = () => setView('dashboard');
+
+  const handleNew = () => { setCurrent(blankState()); setView('editor'); };
+  const handleOpen = (refNo) => {
+    const found = comparisons.find(c=>c.refNo===refNo);
+    if(!found) return;
+    setCurrent({...found, isSaved:true});
+    setView('editor');
+  };
+  const handleDuplicate = (refNo) => {
+    const found = comparisons.find(c=>c.refNo===refNo);
+    if(!found) return;
+    setCurrent({...found, refNo:null, isSaved:false, docs:[], project:{...found.project,status:'Pending'}});
+    setView('editor');
+  };
+  const handleDelete = async (refNo) => {
+    const ok = await confirmAsync('Delete '+formatRef(refNo)+'? This cannot be undone. (An automatic backup snapshot is kept.)');
+    if(!ok) return;
+    const next = comparisons.filter(c=>c.refNo!==refNo);
+    setComparisons(next); saveComparisons(next,'Delete '+formatRef(refNo));
+  };
+  const handleStatus = (refNo,status) => { const list=comparisons.map(c=>c.refNo===refNo?{...c,project:{...c.project,status}}:c); setComparisons(list); saveComparisons(list,'Status change'); };
+  const handleRestore = async (list,last,files,label) => {
+    const ok = await confirmAsync('Restore '+label+'? This replaces the '+comparisons.length+' comparison(s) currently saved with '+list.length+'. A safety snapshot of the current data is kept first.');
+    if(!ok) return;
+    pushBackup(comparisons,'Before restore');
+    const nl = Math.max(last||0,lastRef,...list.map(c=>c.refNo||0));
+    setComparisons(list); saveComparisons(list,'Restore'); setLastRef(nl); saveLastRef(nl);
+  };
+  const handleSaved = (comp) => {
+    if(!comp.refNo){
+      const nextNo = lastRef+1;
+      const record = {...comp, refNo:nextNo, isSaved:true};
+      const list = [...comparisons, record];
+      setComparisons(list); saveComparisons(list);
+      setLastRef(nextNo); saveLastRef(nextNo);
+      setCurrent(record);
+      return record;
+    } else {
+      const record = {...comp, isSaved:true};
+      const list = comparisons.map(c=>c.refNo===comp.refNo?record:c);
+      setComparisons(list); saveComparisons(list);
+      setCurrent(record);
+      return record;
+    }
+  };
+
+  if(cloudOn && !signed) return <React.Fragment><BrandBar cloud={null}/><LoginScreen onSignIn={doSignIn} err={cErr} busy={cBusy}/></React.Fragment>;
+  if(view==='editor' && current){
+    return <React.Fragment><BrandBar cloud={cloud}/><Editor initial={current} onBack={goDashboard} onSaved={handleSaved}/>{confirmDialog}</React.Fragment>;
+  }
+  return <React.Fragment>
+    <BrandBar cloud={cloud}/>
+    <Dashboard comparisons={comparisons} lastRef={lastRef} onNew={handleNew} onOpen={handleOpen} onDuplicate={handleDuplicate} onDelete={handleDelete} onStatus={handleStatus} onRestore={handleRestore} cloudOn={cloudOn}/>
+    {confirmDialog}
+  </React.Fragment>;
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
